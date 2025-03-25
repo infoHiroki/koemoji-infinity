@@ -436,13 +436,17 @@ class MainWindow:
                 
                 # 動画ファイルの場合
                 if file_extension in video_extensions:
-                    transcriber = VideoTranscriber(file_path, model, language, progress_callback=update_progress)
-                    transcript, result_file = transcriber.transcribe(output_dir, base_progress)
+                    transcriber = VideoTranscriber(model_name=model, language=language, callback=update_progress)
+                    result = transcriber.process_video(file_path)
+                    # 処理結果を保存
+                    transcript, result_file = self._save_result(result, file_path, output_dir, model, language)
                 
                 # 音声ファイルの場合
                 elif file_extension in audio_extensions:
-                    transcriber = AudioTranscriber(file_path, model, language, progress_callback=update_progress)
-                    transcript, result_file = transcriber.transcribe(output_dir, base_progress)
+                    transcriber = AudioTranscriber(model_name=model, language=language, callback=update_progress)
+                    result = transcriber.process_audio(file_path)
+                    # 処理結果を保存
+                    transcript, result_file = self._save_result(result, file_path, output_dir, model, language)
                 
                 # サポートされていないファイル形式
                 else:
@@ -471,6 +475,49 @@ class MainWindow:
         # 処理完了
         self.is_processing = False
         self._update_buttons_state()
+    
+    def _save_result(self, result, file_path, output_dir, model, language):
+        """
+        文字起こし結果をファイルに保存
+        
+        Args:
+            result (dict): 文字起こし結果
+            file_path (str): 処理したファイルのパス
+            output_dir (str): 出力ディレクトリ
+            model (str): 使用したモデル
+            language (str): 言語設定
+            
+        Returns:
+            tuple: (テキスト, ファイルパス)
+        """
+        # 出力ディレクトリが存在しない場合は作成
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # ファイル名の準備
+        base_name = os.path.splitext(os.path.basename(file_path))[0]
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        output_file = os.path.join(output_dir, f"{base_name}_{timestamp}.txt")
+        
+        # 結果をファイルに書き込み
+        with open(output_file, "w", encoding="utf-8") as f:
+            # 見出し情報を書き込み
+            f.write(f"# 文字起こし: {os.path.basename(file_path)}\n")
+            f.write(f"# 日時: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"# モデル: {model}\n")
+            f.write(f"# 言語: {language if language else '自動検出'}\n\n")
+            
+            # テキスト全体を書き込み
+            f.write(result["text"])
+            
+            # セグメント情報がある場合は詳細も書き込み
+            if "segments" in result and result["segments"]:
+                f.write("\n\n## 詳細タイムスタンプ\n\n")
+                for segment in result["segments"]:
+                    start_time = self._format_time(segment["start"])
+                    end_time = self._format_time(segment["end"])
+                    f.write(f"[{start_time} --> {end_time}] {segment['text']}\n")
+        
+        return result["text"], output_file
     
     def _format_time(self, seconds):
         """
