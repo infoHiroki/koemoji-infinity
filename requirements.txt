@@ -3,4 +3,10 @@ ffmpeg-python>=0.2.0
 pillow>=9.0.0
 tqdm>=4.64.0
 numpy>=1.20.0
-torch>=1.10.0 
+torch>=1.10.0
+whisper
+torch
+tqdm
+ffmpeg-python
+Pillow
+customtkinter==5.2.0 

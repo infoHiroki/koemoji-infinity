@@ -7,198 +7,157 @@
 """
 
 import os
-import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+import customtkinter as ctk
+from tkinter import messagebox, filedialog
 import platform
 import subprocess
-
-# 標準的なカラーパレット定義
-COLORS = {
-    "bg_primary": "#F0F0F0",        # 標準的な背景色（薄いグレー）
-    "bg_secondary": "#FFFFFF",      # 白背景
-    "accent": "#0078D7",            # Windows標準の青
-    "accent_hover": "#106EBE",      # ホバー時の青
-    "success": "#107C10",           # 成功色（緑）
-    "warning": "#D83B01",           # 警告色（オレンジ）
-    "error": "#E81123",             # エラー色（赤）
-    "text_primary": "#000000",      # 主要テキスト（黒）
-    "text_secondary": "#666666",    # 副次テキスト（グレー）
-    "text_light": "#FFFFFF",        # 明るいテキスト（白）
-    "border": "#CCCCCC",            # 標準ボーダー色
-}
 
 class ResultWindow:
     """文字起こし結果表示ウィンドウクラス"""
     
-    def __init__(self, parent, transcript, title):
+    def __init__(self, parent, transcript, title, colors):
         """
         結果ウィンドウを初期化
         
         Args:
-            parent (tk.Tk): 親ウィンドウ
+            parent (ctk.CTk): 親ウィンドウ
             transcript (str): 文字起こしの結果
-            title (str): 結果ウィンドウのタイトル
+            title (str): ファイル名
+            colors (dict): カラーパレット
         """
+        self.colors = colors
+        
         # ウィンドウの設定
-        self.window = tk.Toplevel(parent)
+        self.window = ctk.CTkToplevel(parent)
         self.window.title(f"文字起こし結果 - {title}")
-        self.window.geometry("700x500")
+        self.window.geometry("800x600")
         self.window.minsize(500, 400)
-        self.window.configure(bg=COLORS["bg_primary"])
+        self.window.transient(parent)
+        self.window.grab_set()
         
-        # スタイルの設定
-        self._setup_styles()
+        # メインレイアウト
+        self._create_layout(transcript, title)
+    
+    def _create_layout(self, transcript, title):
+        """レイアウトを作成"""
+        # メインフレーム
+        main_frame = ctk.CTkFrame(self.window, fg_color=self.colors["bg_light"])
+        main_frame.pack(fill="both", expand=True)
         
-        # メインフレームの作成
-        main_frame = ttk.Frame(self.window, style="TFrame")
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
-        # ヘッダーフレームの作成
-        header_frame = ttk.Frame(main_frame, style="TFrame")
-        header_frame.pack(fill=tk.X, padx=5, pady=5)
+        # ヘッダー
+        header_frame = ctk.CTkFrame(main_frame, fg_color=self.colors["primary"], height=60)
+        header_frame.pack(fill="x")
         
         # タイトルラベル
-        title_label = ttk.Label(
+        title_label = ctk.CTkLabel(
             header_frame, 
-            text=f"ファイル: {title}", 
-            style="Header.TLabel"
+            text=f"文字起こし結果: {title}", 
+            font=ctk.CTkFont(family="Yu Gothic UI", size=18, weight="bold"),
+            text_color=self.colors["text_light"]
         )
-        title_label.pack(anchor=tk.W, padx=5, pady=5)
+        title_label.pack(side="left", padx=20, pady=15)
+        
+        # コンテンツエリア
+        content_frame = ctk.CTkFrame(main_frame, fg_color=self.colors["bg_light"])
+        content_frame.pack(fill="both", expand=True, padx=20, pady=20)
         
         # 説明ラベル
-        info_label = ttk.Label(
-            header_frame, 
-            text="以下に文字起こし結果を表示しています。結果をクリップボードにコピーしたり、ファイルに保存できます。", 
-            style="Info.TLabel",
-            wraplength=680
+        info_label = ctk.CTkLabel(
+            content_frame, 
+            text="以下に文字起こし結果を表示しています。結果をクリップボードにコピーしたり、ファイルに保存できます。",
+            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
+            text_color=self.colors["text_muted"],
+            wraplength=760
         )
-        info_label.pack(anchor=tk.W, padx=5, pady=5)
+        info_label.pack(anchor="w", pady=(0, 10))
         
-        # セパレータ
-        separator = ttk.Separator(main_frame, orient=tk.HORIZONTAL, style="TSeparator")
-        separator.pack(fill=tk.X, padx=5, pady=8)
+        # テキストエリア
+        text_frame = ctk.CTkFrame(content_frame, fg_color=self.colors["bg_dark"], corner_radius=10)
+        text_frame.pack(fill="both", expand=True, pady=(0, 15))
         
-        # テキストエリアの作成
-        text_frame = ttk.Frame(main_frame, style="TFrame")
-        text_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-        
-        # 縦スクロールバー
-        scrollbar_y = tk.Scrollbar(text_frame)
-        scrollbar_y.pack(side=tk.RIGHT, fill=tk.Y)
-        
-        # 横スクロールバー
-        scrollbar_x = tk.Scrollbar(text_frame, orient=tk.HORIZONTAL)
-        scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X)
-        
-        # テキストウィジェット
-        self.text_widget = tk.Text(
+        self.text_widget = ctk.CTkTextbox(
             text_frame,
-            wrap=tk.NONE,
-            yscrollcommand=scrollbar_y.set,
-            xscrollcommand=scrollbar_x.set,
-            font=("Yu Gothic UI", 10),
-            bg=COLORS["bg_secondary"],
-            fg=COLORS["text_primary"],
-            padx=8,
-            pady=8,
-            relief="solid",
-            borderwidth=1
+            width=760,
+            height=400,
+            fg_color=self.colors["bg_dark"],
+            text_color=self.colors["text_dark"],
+            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
+            corner_radius=0,
+            border_width=0,
+            wrap="none"
         )
-        self.text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        
-        # スクロールバーの設定
-        scrollbar_y.config(command=self.text_widget.yview)
-        scrollbar_x.config(command=self.text_widget.xview)
+        self.text_widget.pack(fill="both", expand=True, padx=10, pady=10)
         
         # 結果テキストの挿入
-        self.text_widget.insert(tk.END, transcript)
+        self.text_widget.insert("0.0", transcript)
+        self.text_widget.configure(state="disabled")  # 読み取り専用
         
-        # ボタンフレームの作成
-        button_frame = ttk.Frame(main_frame, style="TFrame")
-        button_frame.pack(fill=tk.X, padx=5, pady=10)
-        
-        # 閉じるボタン
-        close_button = tk.Button(
-            button_frame,
-            text="閉じる",
-            command=self.window.destroy,
-            bg=COLORS["bg_primary"],
-            fg=COLORS["text_primary"],
-            font=("Yu Gothic UI", 10),
-            relief="solid",
-            borderwidth=1,
-            padx=15,
-            pady=3,
-            activebackground=COLORS["bg_secondary"],
-            activeforeground=COLORS["text_primary"]
-        )
-        close_button.pack(side=tk.RIGHT, padx=5, pady=5)
-        
-        # コピーボタン
-        copy_button = tk.Button(
-            button_frame,
-            text="クリップボードにコピー",
-            command=self._copy_to_clipboard,
-            bg=COLORS["accent"],
-            fg=COLORS["text_light"],
-            font=("Yu Gothic UI", 10),
-            relief="flat",
-            borderwidth=1,
-            padx=15,
-            pady=3,
-            activebackground=COLORS["accent_hover"],
-            activeforeground=COLORS["text_light"]
-        )
-        copy_button.pack(side=tk.RIGHT, padx=5, pady=5)
+        # ボタンフレーム
+        button_frame = ctk.CTkFrame(content_frame, fg_color=self.colors["bg_light"])
+        button_frame.pack(fill="x")
         
         # 保存ボタン
-        save_button = tk.Button(
+        save_button = ctk.CTkButton(
             button_frame,
             text="名前を付けて保存",
             command=self._save_as,
-            bg=COLORS["accent"],
-            fg=COLORS["text_light"],
-            font=("Yu Gothic UI", 10),
-            relief="flat",
-            borderwidth=1,
-            padx=15,
-            pady=3,
-            activebackground=COLORS["accent_hover"],
-            activeforeground=COLORS["text_light"]
+            fg_color=self.colors["primary"],
+            hover_color=self.colors["primary_hover"],
+            text_color=self.colors["text_light"],
+            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
+            corner_radius=8,
+            height=35
         )
-        save_button.pack(side=tk.RIGHT, padx=5, pady=5)
-    
-    def _setup_styles(self):
-        """スタイルを設定"""
-        style = ttk.Style()
+        save_button.pack(side="left", padx=(0, 10))
         
-        # フレームスタイル
-        style.configure("TFrame", background=COLORS["bg_primary"])
+        # コピーボタン
+        copy_button = ctk.CTkButton(
+            button_frame,
+            text="クリップボードにコピー",
+            command=self._copy_to_clipboard,
+            fg_color=self.colors["secondary"],
+            hover_color="#FFB0C0",
+            text_color=self.colors["text_dark"],
+            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
+            corner_radius=8,
+            height=35
+        )
+        copy_button.pack(side="left", padx=(0, 10))
         
-        # ラベルスタイル
-        style.configure("TLabel", 
-                     background=COLORS["bg_primary"], 
-                     foreground=COLORS["text_primary"], 
-                     font=("Yu Gothic UI", 10))
+        # フォルダを開くボタン
+        open_folder_button = ctk.CTkButton(
+            button_frame,
+            text="出力フォルダを開く",
+            command=lambda: self._open_folder(os.path.dirname(title)),
+            fg_color=self.colors["bg_dark"],
+            hover_color="#E0E0E0",
+            text_color=self.colors["text_dark"],
+            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
+            corner_radius=8,
+            height=35
+        )
+        open_folder_button.pack(side="left")
         
-        # ヘッダーラベルスタイル
-        style.configure("Header.TLabel", 
-                     background=COLORS["bg_primary"], 
-                     foreground=COLORS["text_primary"], 
-                     font=("Yu Gothic UI", 12, "bold"))
-        
-        # 情報ラベルスタイル
-        style.configure("Info.TLabel", 
-                     background=COLORS["bg_primary"], 
-                     foreground=COLORS["text_secondary"], 
-                     font=("Yu Gothic UI", 9))
-        
-        # セパレータスタイル
-        style.configure("TSeparator", background=COLORS["border"])
+        # 閉じるボタン
+        close_button = ctk.CTkButton(
+            button_frame,
+            text="閉じる",
+            command=self.window.destroy,
+            fg_color=self.colors["error"],
+            hover_color="#FF3B3B",
+            text_color=self.colors["text_light"],
+            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
+            corner_radius=8,
+            height=35
+        )
+        close_button.pack(side="right")
     
     def _copy_to_clipboard(self):
         """テキストをクリップボードにコピー"""
-        text = self.text_widget.get(1.0, tk.END)
+        self.text_widget.configure(state="normal")  # 一時的に編集可能にする
+        text = self.text_widget.get("0.0", "end")
+        self.text_widget.configure(state="disabled")  # 再度読み取り専用に戻す
+        
         self.window.clipboard_clear()
         self.window.clipboard_append(text)
         messagebox.showinfo("コピー完了", "文字起こし結果をクリップボードにコピーしました。")
@@ -216,9 +175,28 @@ class ResultWindow:
         
         if file_path:
             try:
+                self.text_widget.configure(state="normal")  # 一時的に編集可能にする
+                text = self.text_widget.get("0.0", "end")
+                self.text_widget.configure(state="disabled")  # 再度読み取り専用に戻す
+                
                 with open(file_path, "w", encoding="utf-8") as f:
-                    text = self.text_widget.get(1.0, tk.END)
                     f.write(text)
                 messagebox.showinfo("保存完了", f"文字起こし結果を保存しました: {file_path}")
+                
+                # 保存先のフォルダを記憶
+                self.last_save_folder = os.path.dirname(file_path)
             except Exception as e:
                 messagebox.showerror("エラー", f"保存中にエラーが発生しました: {e}")
+    
+    def _open_folder(self, folder_path):
+        """フォルダを開く"""
+        try:
+            # OSによって適切なコマンドを実行
+            if platform.system() == "Windows":
+                os.startfile(folder_path)
+            elif platform.system() == "Darwin":  # macOS
+                subprocess.run(["open", folder_path])
+            else:  # Linux
+                subprocess.run(["xdg-open", folder_path])
+        except Exception as e:
+            messagebox.showerror("エラー", f"フォルダを開く際にエラーが発生しました: {e}")
