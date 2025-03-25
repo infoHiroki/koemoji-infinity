@@ -373,7 +373,7 @@ class MainWindow:
         config = self.config_manager.get_config()
         model = config.get("model", "medium")
         language = config.get("language", "")
-        output_dir = config.get("output_dir", "output")
+        output_dir = config.get("output_directory", "output")
         
         # 出力ディレクトリがなければ作成
         if not os.path.exists(output_dir):

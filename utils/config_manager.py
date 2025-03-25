@@ -31,6 +31,7 @@ class ConfigManager:
             config_file = os.path.abspath(config_file)
         
         self.config_file = config_file
+        logger.debug(f"設定ファイルのパス: {self.config_file}")
         self.config = self._load_config()
         
     def _load_config(self):
@@ -42,21 +43,23 @@ class ConfigManager:
         """
         # デフォルト設定
         default_config = {
-            "model": "small",
-            "language": "",  # 空欄=自動検出
-            "output_dir": os.path.join(os.path.expanduser("~"), "Documents"),
-            "timestamp_format": "[%H:%M:%S.%f]",
-            "use_gpu": True,
-            "threads": 4,
-            "theme_mode": "light",
-            "history": []
+            "model": "tiny",
+            "language": "ja",  # 日本語
+            "output_format": "txt",
+            "history": [],
+            "output_directory": os.path.expanduser("~/Documents/Transcriptions")
         }
         
+        # 設定ファイルのパスを確認
+        config_path = os.path.abspath(self.config_file)
+        logger.debug(f"設定ファイルを読み込んでいます: {config_path}")
+        
         # 設定ファイルが存在する場合は読み込む
-        if os.path.exists(self.config_file):
+        if os.path.exists(config_path):
             try:
-                with open(self.config_file, "r", encoding="utf-8") as f:
+                with open(config_path, "r", encoding="utf-8") as f:
                     config = json.load(f)
+                    logger.debug("設定ファイルを読み込みました")
                     
                     # デフォルト設定とマージ
                     for key, value in default_config.items():
@@ -66,83 +69,161 @@ class ConfigManager:
                     return config
             except Exception as e:
                 logger.error(f"設定ファイルの読み込みに失敗しました: {e}")
+                import traceback
+                logger.error(traceback.format_exc())
+                # 読み込みに失敗した場合はデフォルト設定を使用
+                logger.info("デフォルト設定を使用します")
+        else:
+            logger.info("設定ファイルが存在しません。デフォルト設定を使用します")
         
-        # 設定ファイルが存在しない場合や読み込みに失敗した場合はデフォルト設定を使用
+        # 設定ファイルが存在しない場合はデフォルト設定を使用
         return default_config
     
-    def save(self):
+    def get_config(self):
+        """
+        設定全体を取得
+        
+        Returns:
+            dict: 設定データ
+        """
+        return self.config
+    
+    def save_config(self):
         """設定ファイルを保存"""
         try:
+            # 設定ファイルのパスを確認
+            config_path = os.path.abspath(self.config_file)
+            logger.debug(f"設定を保存しています: {config_path}")
+            
             # ディレクトリが存在することを確認
-            config_dir = os.path.dirname(self.config_file)
+            config_dir = os.path.dirname(config_path)
             if config_dir and not os.path.exists(config_dir):
                 os.makedirs(config_dir)
             
             # 設定ファイルを保存
-            with open(self.config_file, "w", encoding="utf-8") as f:
+            with open(config_path, "w", encoding="utf-8") as f:
                 json.dump(self.config, f, ensure_ascii=False, indent=4)
             
+            logger.debug("設定の保存に成功しました")
             return True
         except Exception as e:
             logger.error(f"設定の保存に失敗しました: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
             return False
     
-    def get(self, key, default=None):
+    def get_model(self):
         """
-        設定値を取得
+        モデル名を取得
         
-        Args:
-            key (str): 設定キー
-            default: デフォルト値
-            
         Returns:
-            設定値
+            str: モデル名
         """
-        return self.config.get(key, default)
+        return self.config.get("model", "tiny")
     
-    def set(self, key, value):
+    def set_model(self, model):
         """
-        設定値を設定
+        モデル名を設定
         
         Args:
-            key (str): 設定キー
-            value: 設定値
+            model (str): モデル名
         """
-        self.config[key] = value
+        self.config["model"] = model
+        self.save_config()
     
-    def add_to_history(self, file_path, output_path, time_taken=None):
+    def get_language(self):
+        """
+        言語設定を取得
+        
+        Returns:
+            str: 言語コード (None=自動検出)
+        """
+        return self.config.get("language", "ja")
+    
+    def set_language(self, language):
+        """
+        言語設定を設定
+        
+        Args:
+            language (str): 言語コード (None=自動検出)
+        """
+        self.config["language"] = language
+        self.save_config()
+    
+    def get_output_format(self):
+        """
+        出力形式を取得
+        
+        Returns:
+            str: 出力形式
+        """
+        return self.config.get("output_format", "txt")
+    
+    def set_output_format(self, output_format):
+        """
+        出力形式を設定
+        
+        Args:
+            output_format (str): 出力形式
+        """
+        self.config["output_format"] = output_format
+        self.save_config()
+    
+    def get_output_directory(self):
+        """
+        出力ディレクトリを取得
+        
+        Returns:
+            str: 出力ディレクトリのパス
+        """
+        output_dir = self.config.get("output_directory", os.path.expanduser("~/Documents/Transcriptions"))
+        
+        # ディレクトリが存在しない場合は作成
+        if not os.path.exists(output_dir):
+            try:
+                os.makedirs(output_dir)
+            except Exception:
+                # 作成に失敗した場合はカレントディレクトリを使用
+                output_dir = "."
+        
+        return output_dir
+    
+    def set_output_directory(self, output_directory):
+        """
+        出力ディレクトリを設定
+        
+        Args:
+            output_directory (str): 出力ディレクトリのパス
+        """
+        self.config["output_directory"] = output_directory
+        self.save_config()
+    
+    def add_to_history(self, file_path, output_path):
         """
         履歴に追加
         
         Args:
             file_path (str): 処理したファイルのパス
             output_path (str): 出力ファイルのパス
-            time_taken (float, optional): 処理にかかった時間（秒）
         """
         history = self.config.get("history", [])
         
-        # 新しい履歴項目
-        new_entry = {
-            "file": os.path.basename(file_path),
-            "file_path": file_path,
-            "output": os.path.basename(output_path),
-            "output_path": output_path,
-            "date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "model": self.get("model", "small")
+        # 履歴エントリを作成
+        entry = {
+            "file": file_path,
+            "output": output_path,
+            "timestamp": datetime.datetime.now().isoformat()
         }
         
-        if time_taken is not None:
-            new_entry["time_taken"] = time_taken
+        # 履歴に追加
+        history.append(entry)
         
-        # 履歴の先頭に追加
-        history.insert(0, new_entry)
-        
-        # 履歴の最大数を制限（最新の50件を保持）
-        if len(history) > 50:
-            history = history[:50]
+        # 履歴が長すぎる場合は古いものを削除
+        if len(history) > 100:
+            history = history[-100:]
         
         self.config["history"] = history
-        self.save()
+        self.save_config()
     
     def get_history(self):
         """
@@ -151,4 +232,18 @@ class ConfigManager:
         Returns:
             list: 履歴リスト
         """
-        return self.config.get("history", []) 
+        return self.config.get("history", [])
+
+    def update_config(self, new_config):
+        """
+        複数の設定を一括で更新
+        
+        Args:
+            new_config (dict): 更新する設定のディクショナリ
+        """
+        # 既存の設定を更新
+        for key, value in new_config.items():
+            self.config[key] = value
+        
+        # 設定を保存
+        self.save_config() 

@@ -342,7 +342,7 @@ class SettingsWindow:
         self.lang_var.set(language_name)
         
         # 出力ディレクトリ
-        output_dir = config.get("output_dir", "output")
+        output_dir = config.get("output_directory", "output")
         self.output_dir_var.set(output_dir)
     
     def _save_settings(self):
@@ -366,7 +366,7 @@ class SettingsWindow:
         config = {
             "model": model,
             "language": language_code,
-            "output_dir": output_dir
+            "output_directory": output_dir
         }
         
         # 設定を保存
