@@ -8,46 +8,50 @@ OpenAI Whisperを使用して動画ファイルから音声を抽出し、自動
 
 import os
 import sys
+import tkinter as tk
+from tkinter import ttk, filedialog, messagebox
+from PIL import Image, ImageTk
+import threading
 import json
 import datetime
-import customtkinter as ctk
 
 # 自作モジュールのインポート
-from transcriber import VideoTranscriber, AudioTranscriber
+from transcriber import VideoTranscriber
 from ui.main_window import MainWindow
+from ui.settings_window import SettingsWindow
 from utils.config_manager import ConfigManager
 
-# テーマカラー定義
+# モダンなカラーパレット定義
 COLORS = {
-    "primary": "#FF6B9A",       # メインカラー（ピンク）
-    "primary_hover": "#FF5186", # ホバー時の色（濃いピンク）
-    "secondary": "#FFB7C9",     # サブカラー（薄いピンク）
-    "success": "#4CAF50",       # 成功色（緑）
-    "warning": "#FFC107",       # 警告色（黄色）
-    "error": "#FF5252",         # エラー色（赤）
-    "bg_light": "#FFFFFF",      # 明るい背景色（白）
-    "bg_dark": "#F0F0F5",       # 暗い背景色（薄いグレー）
-    "text_dark": "#212121",     # 暗いテキスト色
-    "text_light": "#FFFFFF",    # 明るいテキスト色
-    "text_muted": "#757575",    # グレーアウトしたテキスト色
-    "border": "#E0E0E0",        # ボーダー色
+    "bg_primary": "#FAFAFA",        # 背景色（ほぼ白）
+    "bg_secondary": "#FFFFFF",      # 白背景
+    "accent": "#2196F3",            # アクセント色（青）
+    "accent_hover": "#1976D2",      # ホバー時のアクセント色（濃い青）
+    "success": "#4CAF50",           # 成功色（緑）
+    "warning": "#FF9800",           # 警告色（オレンジ）
+    "error": "#F44336",             # エラー色（赤）
+    "text_primary": "#212121",      # 主要テキスト（黒に近いグレー）
+    "text_secondary": "#757575",    # 副次テキスト（ミディアムグレー）
+    "text_light": "#FFFFFF",        # 明るいテキスト（白）
+    "border": "#E0E0E0",            # 標準ボーダー色（薄いグレー）
 }
 
 def main():
     """アプリケーションのメインエントリーポイント"""
-    # システム設定
-    ctk.set_appearance_mode("light")  # ライトモード
-    ctk.set_default_color_theme("blue")  # ベースの色テーマ（後でカスタマイズ）
-    
     # 設定の読み込み
     config_manager = ConfigManager()
     
     # メインウィンドウの作成
-    root = ctk.CTk()
+    root = tk.Tk()
     
     # ウィンドウの設定
     root.title("音声・動画文字起こしアプリ")
-    root.geometry("1000x650")
+    root.geometry("900x650")
+    root.configure(bg=COLORS["bg_primary"])
+    
+    # フォントの設定
+    default_font = ("Segoe UI", 10)
+    root.option_add("*Font", default_font)
     
     # アプリケーションのアイコン設定（存在する場合）
     try:
@@ -57,7 +61,7 @@ def main():
         pass
     
     # メインアプリケーションの作成
-    app = MainWindow(root, config_manager, COLORS)
+    app = MainWindow(root, config_manager)
     
     # アプリケーションの実行
     root.mainloop()

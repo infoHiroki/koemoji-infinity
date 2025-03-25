@@ -7,548 +7,370 @@
 """
 
 import os
-import customtkinter as ctk
-from tkinter import filedialog, messagebox
+import tkinter as tk
+from tkinter import ttk, filedialog, messagebox
+
+# モダンなカラーパレット定義
+COLORS = {
+    "bg_primary": "#FAFAFA",        # 背景色（ほぼ白）
+    "bg_secondary": "#FFFFFF",      # 白背景
+    "accent": "#2196F3",            # アクセント色（青）
+    "accent_hover": "#1976D2",      # ホバー時のアクセント色（濃い青）
+    "success": "#4CAF50",           # 成功色（緑）
+    "warning": "#FF9800",           # 警告色（オレンジ）
+    "error": "#F44336",             # エラー色（赤）
+    "text_primary": "#212121",      # 主要テキスト（黒に近いグレー）
+    "text_secondary": "#757575",    # 副次テキスト（ミディアムグレー）
+    "text_light": "#FFFFFF",        # 明るいテキスト（白）
+    "border": "#E0E0E0",            # 標準ボーダー色（薄いグレー）
+}
 
 class SettingsWindow:
     """設定ウィンドウクラス"""
     
-    def __init__(self, parent, config_manager, colors):
+    def __init__(self, parent, config_manager):
         """
         初期化
         
         Args:
-            parent (ctk.CTk): 親ウィンドウ
+            parent (tk.Tk): 親ウィンドウ
             config_manager (ConfigManager): 設定管理オブジェクト
-            colors (dict): カラーパレット
         """
         self.parent = parent
         self.config_manager = config_manager
-        self.colors = colors
         
         # 設定ウィンドウを作成
-        self.window = ctk.CTkToplevel(parent)
-        self.window.title("詳細設定")
-        self.window.geometry("550x580")
+        self.window = tk.Toplevel(parent)
+        self.window.title("設定")
+        self.window.geometry("520x520")
+        self.window.minsize(450, 500)
         self.window.transient(parent)
         self.window.grab_set()
-        self.window.focus_set()
+        self.window.configure(bg=COLORS["bg_primary"])
         
-        # タブビューの作成
-        self.tab_view = ctk.CTkTabview(
-            self.window,
-            fg_color=self.colors["bg_light"],
-            segmented_button_fg_color=self.colors["primary"],
-            segmented_button_selected_color=self.colors["primary_hover"],
-            segmented_button_selected_hover_color=self.colors["primary_hover"],
-            segmented_button_unselected_color=self.colors["primary"],
-            segmented_button_unselected_hover_color=self.colors["primary_hover"],
-            text_color=self.colors["text_light"]
-        )
-        self.tab_view.pack(fill="both", expand=True, padx=20, pady=20)
+        # スタイルの設定
+        self._setup_styles()
         
-        # タブの追加
-        self.tab_view.add("モデル設定")
-        self.tab_view.add("出力設定")
-        self.tab_view.add("システム設定")
-        
-        # 各タブの内容を作成
-        self._create_model_settings_tab()
-        self._create_output_settings_tab()
-        self._create_system_settings_tab()
-        
-        # ボタンフレーム
-        button_frame = ctk.CTkFrame(self.window, fg_color=self.colors["bg_light"])
-        button_frame.pack(fill="x", padx=20, pady=(0, 20))
-        
-        # キャンセルボタン
-        cancel_button = ctk.CTkButton(
-            button_frame, 
-            text="キャンセル", 
-            command=self.window.destroy,
-            fg_color=self.colors["bg_dark"],
-            hover_color="#E0E0E0",
-            text_color=self.colors["text_dark"],
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            height=35,
-            corner_radius=8
-        )
-        cancel_button.pack(side="left", padx=(0, 10))
-        
-        # 保存ボタン
-        save_button = ctk.CTkButton(
-            button_frame, 
-            text="設定を保存", 
-            command=self._save_settings,
-            fg_color=self.colors["success"],
-            hover_color="#3D9A40",
-            text_color=self.colors["text_light"],
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12, weight="bold"),
-            height=35,
-            corner_radius=8
-        )
-        save_button.pack(side="right")
+        # メインレイアウト作成
+        self._create_main_layout()
         
         # 初期設定を読み込み
         self._load_settings()
     
-    def _create_model_settings_tab(self):
-        """モデル設定タブの内容を作成"""
-        tab = self.tab_view.tab("モデル設定")
+    def _setup_styles(self):
+        """スタイルの設定"""
+        style = ttk.Style()
         
-        # ヘッダー
-        header = ctk.CTkLabel(
-            tab, 
-            text="Whisperモデル詳細設定",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=16, weight="bold"),
-            text_color=self.colors["text_dark"]
-        )
-        header.pack(anchor="w", pady=(0, 20))
+        # 標準フォント定義
+        heading_font = ("Segoe UI", 11, "bold")
+        normal_font = ("Segoe UI", 10)
+        small_font = ("Segoe UI", 9)
+        
+        # フレームのスタイル
+        style.configure("TFrame", background=COLORS["bg_primary"])
+        style.configure("Card.TFrame", background=COLORS["bg_secondary"])
+        
+        # ラベルのスタイル
+        style.configure("TLabel", background=COLORS["bg_primary"], foreground=COLORS["text_primary"], font=normal_font)
+        style.configure("Header.TLabel", background=COLORS["bg_primary"], foreground=COLORS["text_primary"], font=heading_font)
+        style.configure("Card.TLabel", background=COLORS["bg_secondary"], foreground=COLORS["text_primary"], font=normal_font)
+        style.configure("CardHeader.TLabel", background=COLORS["bg_secondary"], foreground=COLORS["text_primary"], font=heading_font)
+        style.configure("Description.TLabel", background=COLORS["bg_secondary"], foreground=COLORS["text_secondary"], font=small_font)
+
+        # コンボボックスのスタイル
+        style.configure("TCombobox", foreground=COLORS["text_primary"], font=normal_font)
+        style.map("TCombobox", fieldbackground=[("readonly", COLORS["bg_secondary"])])
+        
+        # エントリのスタイル
+        style.configure("TEntry", foreground=COLORS["text_primary"], font=normal_font)
+        style.map("TEntry", fieldbackground=[("readonly", COLORS["bg_secondary"])])
+        
+        # セパレータのスタイル
+        style.configure("TSeparator", background=COLORS["border"])
+
+    def _create_main_layout(self):
+        """メインレイアウトを作成"""
+        # メインコンテナ
+        self.main_frame = ttk.Frame(self.window, style="TFrame")
+        self.main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        
+        # タイトル
+        title_label = ttk.Label(self.main_frame, text="アプリケーション設定", style="Header.TLabel")
+        title_label.pack(anchor=tk.W, pady=(0, 15))
+        
+        # モデル設定カード
+        self._create_model_card()
+        
+        # 言語設定カード
+        self._create_language_card()
+        
+        # 出力設定カード
+        self._create_output_card()
+        
+        # アクションボタン
+        self._create_action_buttons()
+    
+    def _create_card(self, parent, title):
+        """カードフレームを作成するヘルパーメソッド"""
+        # カード外側フレーム
+        card_outer = ttk.Frame(parent, style="TFrame")
+        card_outer.pack(fill=tk.X, pady=10)
+        
+        # カード内側フレーム
+        card = ttk.Frame(card_outer, style="Card.TFrame")
+        card.pack(fill=tk.X, padx=1, pady=1)
+        card.configure(relief="solid", borderwidth=1)
+        
+        # カードヘッダー
+        header = ttk.Frame(card, style="Card.TFrame")
+        header.pack(fill=tk.X, padx=15, pady=(15, 5))
+        
+        # カードタイトル
+        card_title = ttk.Label(header, text=title, style="CardHeader.TLabel")
+        card_title.pack(anchor=tk.W)
+        
+        # カードコンテンツ領域
+        content = ttk.Frame(card, style="Card.TFrame")
+        content.pack(fill=tk.X, padx=15, pady=(5, 15))
+        
+        return content
+    
+    def _create_model_card(self):
+        """モデル設定カードを作成"""
+        content = self._create_card(self.main_frame, "Whisperモデル設定")
         
         # モデルサイズ選択
-        model_frame = ctk.CTkFrame(tab, fg_color=self.colors["bg_dark"], corner_radius=10)
-        model_frame.pack(fill="x", pady=(0, 20))
+        model_label = ttk.Label(content, text="モデルサイズ:", style="Card.TLabel")
+        model_label.pack(anchor=tk.W, pady=(0, 5))
         
-        model_label = ctk.CTkLabel(
-            model_frame, 
-            text="モデルサイズ:",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=14),
-            text_color=self.colors["text_dark"]
+        # モデルサイズ選択コンボボックス
+        self.model_var = tk.StringVar()
+        model_combo = ttk.Combobox(content, textvariable=self.model_var, state="readonly", width=20)
+        model_combo["values"] = ["tiny", "base", "small", "medium", "large"]
+        model_combo.pack(fill=tk.X, pady=2)
+        
+        # モデル説明
+        self.model_desc_var = tk.StringVar()
+        model_desc = ttk.Label(
+            content, 
+            textvariable=self.model_desc_var, 
+            wraplength=450, 
+            justify=tk.LEFT,
+            style="Description.TLabel"
         )
-        model_label.pack(anchor="w", padx=15, pady=(15, 10))
+        model_desc.pack(fill=tk.X, pady=(5, 0))
         
-        self.model_var = ctk.StringVar(value=self.config_manager.get("model", "small"))
-        
-        # モデルサイズのラジオボタン
-        self.model_radio_tiny = ctk.CTkRadioButton(
-            model_frame, 
-            text="tiny (超小型: 75MB, 高速・低精度)",
-            variable=self.model_var,
-            value="tiny",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            fg_color=self.colors["primary"],
-            hover_color=self.colors["primary_hover"],
-            border_color=self.colors["primary"]
-        )
-        self.model_radio_tiny.pack(anchor="w", padx=30, pady=5)
-        
-        self.model_radio_base = ctk.CTkRadioButton(
-            model_frame, 
-            text="base (小型: 140MB, 速い・中程度の精度)",
-            variable=self.model_var,
-            value="base",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            fg_color=self.colors["primary"],
-            hover_color=self.colors["primary_hover"],
-            border_color=self.colors["primary"]
-        )
-        self.model_radio_base.pack(anchor="w", padx=30, pady=5)
-        
-        self.model_radio_small = ctk.CTkRadioButton(
-            model_frame, 
-            text="small (中型: 460MB, 標準・良好な精度)",
-            variable=self.model_var,
-            value="small",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            fg_color=self.colors["primary"],
-            hover_color=self.colors["primary_hover"],
-            border_color=self.colors["primary"]
-        )
-        self.model_radio_small.pack(anchor="w", padx=30, pady=5)
-        
-        self.model_radio_medium = ctk.CTkRadioButton(
-            model_frame, 
-            text="medium (大型: 1.5GB, やや遅い・高精度)",
-            variable=self.model_var,
-            value="medium",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            fg_color=self.colors["primary"],
-            hover_color=self.colors["primary_hover"],
-            border_color=self.colors["primary"]
-        )
-        self.model_radio_medium.pack(anchor="w", padx=30, pady=5)
-        
-        self.model_radio_large = ctk.CTkRadioButton(
-            model_frame, 
-            text="large (超大型: 3GB, 低速・最高精度)",
-            variable=self.model_var,
-            value="large",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            fg_color=self.colors["primary"],
-            hover_color=self.colors["primary_hover"],
-            border_color=self.colors["primary"]
-        )
-        self.model_radio_large.pack(anchor="w", padx=30, pady=5)
-        
-        model_note = ctk.CTkLabel(
-            model_frame, 
-            text="※大きいモデルほど精度が上がりますが、処理に時間がかかり、\nメモリ使用量も増加します。",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=10),
-            text_color=self.colors["text_muted"]
-        )
-        model_note.pack(anchor="w", padx=15, pady=(5, 15))
-        
-        # 言語設定
-        lang_frame = ctk.CTkFrame(tab, fg_color=self.colors["bg_dark"], corner_radius=10)
-        lang_frame.pack(fill="x", pady=(0, 10))
-        
-        lang_label = ctk.CTkLabel(
-            lang_frame, 
-            text="言語設定:",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=14),
-            text_color=self.colors["text_dark"]
-        )
-        lang_label.pack(anchor="w", padx=15, pady=(15, 10))
-        
-        lang_input_frame = ctk.CTkFrame(lang_frame, fg_color=self.colors["bg_dark"])
-        lang_input_frame.pack(fill="x", padx=15, pady=(0, 5))
-        
-        lang_code_label = ctk.CTkLabel(
-            lang_input_frame, 
-            text="言語コード:",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            text_color=self.colors["text_dark"]
-        )
-        lang_code_label.pack(side="left", padx=(0, 10))
-        
-        self.lang_var = ctk.StringVar(value=self.config_manager.get("language", ""))
-        self.lang_entry = ctk.CTkEntry(
-            lang_input_frame, 
-            textvariable=self.lang_var,
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            width=100,
-            placeholder_text="自動検出"
-        )
-        self.lang_entry.pack(side="left")
-        
-        lang_note = ctk.CTkLabel(
-            lang_frame, 
-            text="主要言語コード: ja (日本語), en (英語), zh (中国語), de (ドイツ語),\nes (スペイン語), ru (ロシア語), ko (韓国語), fr (フランス語)\n※空欄の場合は自動検出します。",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=10),
-            text_color=self.colors["text_muted"]
-        )
-        lang_note.pack(anchor="w", padx=15, pady=(5, 15))
+        # モデル選択変更時のイベント設定
+        model_combo.bind("<<ComboboxSelected>>", self._update_model_description)
     
-    def _create_output_settings_tab(self):
-        """出力設定タブの内容を作成"""
-        tab = self.tab_view.tab("出力設定")
+    def _create_language_card(self):
+        """言語設定カードを作成"""
+        content = self._create_card(self.main_frame, "言語設定")
         
-        # ヘッダー
-        header = ctk.CTkLabel(
-            tab, 
-            text="文字起こし出力設定",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=16, weight="bold"),
-            text_color=self.colors["text_dark"]
-        )
-        header.pack(anchor="w", pady=(0, 20))
+        # 言語選択
+        lang_label = ttk.Label(content, text="文字起こしの言語:", style="Card.TLabel")
+        lang_label.pack(anchor=tk.W, pady=(0, 5))
         
-        # 出力ディレクトリ設定
-        output_frame = ctk.CTkFrame(tab, fg_color=self.colors["bg_dark"], corner_radius=10)
-        output_frame.pack(fill="x", pady=(0, 20))
-        
-        output_label = ctk.CTkLabel(
-            output_frame, 
-            text="出力ディレクトリ:",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=14),
-            text_color=self.colors["text_dark"]
-        )
-        output_label.pack(anchor="w", padx=15, pady=(15, 10))
-        
-        output_input_frame = ctk.CTkFrame(output_frame, fg_color=self.colors["bg_dark"])
-        output_input_frame.pack(fill="x", padx=15, pady=(0, 15))
-        
-        self.output_var = ctk.StringVar(value=self.config_manager.get("output_dir", os.path.join(os.path.expanduser("~"), "Documents")))
-        self.output_entry = ctk.CTkEntry(
-            output_input_frame, 
-            textvariable=self.output_var,
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            width=300
-        )
-        self.output_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
-        
-        output_button = ctk.CTkButton(
-            output_input_frame, 
-            text="参照",
-            command=self._browse_output_dir,
-            fg_color=self.colors["secondary"],
-            hover_color="#FFB0C0",
-            text_color=self.colors["text_dark"],
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            width=80,
-            corner_radius=4
-        )
-        output_button.pack(side="right")
-        
-        # タイムスタンプ形式
-        timestamp_frame = ctk.CTkFrame(tab, fg_color=self.colors["bg_dark"], corner_radius=10)
-        timestamp_frame.pack(fill="x", pady=(0, 20))
-        
-        timestamp_label = ctk.CTkLabel(
-            timestamp_frame, 
-            text="タイムスタンプ形式:",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=14),
-            text_color=self.colors["text_dark"]
-        )
-        timestamp_label.pack(anchor="w", padx=15, pady=(15, 10))
-        
-        self.timestamp_format_var = ctk.StringVar(value=self.config_manager.get("timestamp_format", "[%H:%M:%S.%f]"))
-        
-        timestamp_formats = [
-            "[00:00:00.000]",
-            "00:00:00",
-            "00m00s",
-            "(0:00)"
+        # 言語選択コンボボックス
+        self.lang_var = tk.StringVar()
+        lang_combo = ttk.Combobox(content, textvariable=self.lang_var, width=20)
+        lang_options = [
+            ("自動検出", ""),
+            ("日本語", "ja"),
+            ("英語", "en"),
+            ("中国語", "zh"),
+            ("ドイツ語", "de"),
+            ("スペイン語", "es"),
+            ("ロシア語", "ru"),
+            ("韓国語", "ko"),
+            ("フランス語", "fr"),
+            ("ポルトガル語", "pt"),
+            ("トルコ語", "tr"),
+            ("ポーランド語", "pl"),
+            ("イタリア語", "it")
         ]
+        lang_combo["values"] = [name for name, code in lang_options]
+        self.lang_options = {name: code for name, code in lang_options}
+        lang_combo.pack(fill=tk.X, pady=2)
         
-        timestamp_format_frame = ctk.CTkFrame(timestamp_frame, fg_color=self.colors["bg_dark"])
-        timestamp_format_frame.pack(fill="x", padx=15, pady=(0, 15))
-        
-        # ラジオボタンでフォーマット選択
-        self.format_radio1 = ctk.CTkRadioButton(
-            timestamp_format_frame, 
-            text="[00:00:00.000]",
-            variable=self.timestamp_format_var,
-            value="[%H:%M:%S.%f]",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            fg_color=self.colors["primary"],
-            hover_color=self.colors["primary_hover"],
-            border_color=self.colors["primary"]
+        # 言語説明
+        lang_desc = ttk.Label(
+            content,
+            text="文字起こしを行う言語を選択します。自動検出を選ぶと、WhisperがAIで言語を判定します。",
+            wraplength=450,
+            justify=tk.LEFT,
+            style="Description.TLabel"
         )
-        self.format_radio1.pack(anchor="w", pady=5)
-        
-        self.format_radio2 = ctk.CTkRadioButton(
-            timestamp_format_frame, 
-            text="00:00:00",
-            variable=self.timestamp_format_var,
-            value="%H:%M:%S",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            fg_color=self.colors["primary"],
-            hover_color=self.colors["primary_hover"],
-            border_color=self.colors["primary"]
-        )
-        self.format_radio2.pack(anchor="w", pady=5)
-        
-        self.format_radio3 = ctk.CTkRadioButton(
-            timestamp_format_frame, 
-            text="00m00s",
-            variable=self.timestamp_format_var,
-            value="%Mm%Ss",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            fg_color=self.colors["primary"],
-            hover_color=self.colors["primary_hover"],
-            border_color=self.colors["primary"]
-        )
-        self.format_radio3.pack(anchor="w", pady=5)
-        
-        self.format_radio4 = ctk.CTkRadioButton(
-            timestamp_format_frame, 
-            text="(0:00)",
-            variable=self.timestamp_format_var,
-            value="(%M:%S)",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            fg_color=self.colors["primary"],
-            hover_color=self.colors["primary_hover"],
-            border_color=self.colors["primary"]
-        )
-        self.format_radio4.pack(anchor="w", pady=5)
+        lang_desc.pack(fill=tk.X, pady=(5, 0))
     
-    def _create_system_settings_tab(self):
-        """システム設定タブの内容を作成"""
-        tab = self.tab_view.tab("システム設定")
+    def _create_output_card(self):
+        """出力設定カードを作成"""
+        content = self._create_card(self.main_frame, "出力設定")
         
-        # ヘッダー
-        header = ctk.CTkLabel(
-            tab, 
-            text="システム設定",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=16, weight="bold"),
-            text_color=self.colors["text_dark"]
+        # 出力ディレクトリ
+        output_label = ttk.Label(content, text="文字起こし結果の出力先:", style="Card.TLabel")
+        output_label.pack(anchor=tk.W, pady=(0, 5))
+        
+        # 出力ディレクトリ選択エリア
+        dir_frame = ttk.Frame(content, style="Card.TFrame")
+        dir_frame.pack(fill=tk.X, pady=2)
+        
+        # 出力ディレクトリパス
+        self.output_dir_var = tk.StringVar()
+        output_entry = ttk.Entry(dir_frame, textvariable=self.output_dir_var)
+        output_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
+        
+        # 参照ボタン
+        browse_button = tk.Button(
+            dir_frame,
+            text="参照...",
+            command=self._browse_output_dir,
+            bg=COLORS["accent"],
+            fg=COLORS["text_light"],
+            font=("Segoe UI", 9),
+            relief="flat",
+            borderwidth=0,
+            padx=8,
+            pady=2,
+            activebackground=COLORS["accent_hover"],
+            activeforeground=COLORS["text_light"]
         )
-        header.pack(anchor="w", pady=(0, 20))
+        browse_button.pack(side=tk.RIGHT)
         
-        # ハードウェア設定
-        hw_frame = ctk.CTkFrame(tab, fg_color=self.colors["bg_dark"], corner_radius=10)
-        hw_frame.pack(fill="x", pady=(0, 20))
-        
-        hw_label = ctk.CTkLabel(
-            hw_frame, 
-            text="ハードウェア設定:",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=14),
-            text_color=self.colors["text_dark"]
+        # 出力説明
+        output_desc = ttk.Label(
+            content,
+            text="文字起こし結果のテキストファイルが保存されるフォルダを指定します。指定しない場合はアプリケーションと同じフォルダの「output」ディレクトリに保存されます。",
+            wraplength=450,
+            justify=tk.LEFT,
+            style="Description.TLabel"
         )
-        hw_label.pack(anchor="w", padx=15, pady=(15, 10))
+        output_desc.pack(fill=tk.X, pady=(5, 0))
+    
+    def _create_action_buttons(self):
+        """アクションボタンエリアを作成"""
+        button_frame = ttk.Frame(self.main_frame, style="TFrame")
+        button_frame.pack(fill=tk.X, pady=(15, 0))
         
-        # GPU使用設定
-        self.use_gpu_var = ctk.BooleanVar(value=self.config_manager.get("use_gpu", True))
-        use_gpu_cb = ctk.CTkCheckBox(
-            hw_frame,
-            text="GPU高速化を有効にする（CUDA/ROCm対応GPUがある場合）",
-            variable=self.use_gpu_var,
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            fg_color=self.colors["primary"],
-            hover_color=self.colors["primary_hover"],
-            border_color=self.colors["primary"]
+        # キャンセルボタン
+        cancel_button = tk.Button(
+            button_frame,
+            text="キャンセル",
+            command=self.window.destroy,
+            bg=COLORS["bg_primary"],
+            fg=COLORS["text_primary"],
+            font=("Segoe UI", 10),
+            relief="solid",
+            borderwidth=1,
+            padx=10,
+            pady=5,
+            activebackground=COLORS["border"],
+            activeforeground=COLORS["text_primary"]
         )
-        use_gpu_cb.pack(anchor="w", padx=15, pady=5)
+        cancel_button.pack(side=tk.RIGHT, padx=(5, 0))
         
-        # スレッド数設定
-        threads_frame = ctk.CTkFrame(hw_frame, fg_color=self.colors["bg_dark"])
-        threads_frame.pack(fill="x", padx=15, pady=(5, 15))
-        
-        threads_label = ctk.CTkLabel(
-            threads_frame, 
-            text="CPU処理スレッド数:",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            text_color=self.colors["text_dark"]
+        # 保存ボタン
+        save_button = tk.Button(
+            button_frame,
+            text="保存",
+            command=self._save_settings,
+            bg=COLORS["accent"],
+            fg=COLORS["text_light"],
+            font=("Segoe UI", 10),
+            relief="flat",
+            borderwidth=0,
+            padx=15,
+            pady=5,
+            activebackground=COLORS["accent_hover"],
+            activeforeground=COLORS["text_light"]
         )
-        threads_label.pack(side="left", padx=(0, 10))
-        
-        self.threads_var = ctk.StringVar(value=str(self.config_manager.get("threads", 4)))
-        threads_entry = ctk.CTkEntry(
-            threads_frame, 
-            textvariable=self.threads_var,
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            width=60
-        )
-        threads_entry.pack(side="left")
-        
-        hw_note = ctk.CTkLabel(
-            hw_frame, 
-            text="※GPUを使用すると処理が高速化されますが、より多くのメモリを使用します。\n※スレッド数は、お使いのCPUのコア数に応じて設定してください。",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=10),
-            text_color=self.colors["text_muted"]
-        )
-        hw_note.pack(anchor="w", padx=15, pady=(0, 15))
-        
-        # 外観設定
-        theme_frame = ctk.CTkFrame(tab, fg_color=self.colors["bg_dark"], corner_radius=10)
-        theme_frame.pack(fill="x", pady=(0, 20))
-        
-        theme_label = ctk.CTkLabel(
-            theme_frame, 
-            text="外観設定:",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=14),
-            text_color=self.colors["text_dark"]
-        )
-        theme_label.pack(anchor="w", padx=15, pady=(15, 10))
-        
-        # テーマモード設定
-        self.theme_mode_var = ctk.StringVar(value=self.config_manager.get("theme_mode", "light"))
-        theme_mode_frame = ctk.CTkFrame(theme_frame, fg_color=self.colors["bg_dark"])
-        theme_mode_frame.pack(fill="x", padx=15, pady=(5, 15))
-        
-        # テーマモードラジオボタン
-        self.theme_light_radio = ctk.CTkRadioButton(
-            theme_mode_frame, 
-            text="ライトモード",
-            variable=self.theme_mode_var,
-            value="light",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            fg_color=self.colors["primary"],
-            hover_color=self.colors["primary_hover"],
-            border_color=self.colors["primary"]
-        )
-        self.theme_light_radio.pack(side="left", padx=(0, 20))
-        
-        self.theme_dark_radio = ctk.CTkRadioButton(
-            theme_mode_frame, 
-            text="ダークモード",
-            variable=self.theme_mode_var,
-            value="dark",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            fg_color=self.colors["primary"],
-            hover_color=self.colors["primary_hover"],
-            border_color=self.colors["primary"]
-        )
-        self.theme_dark_radio.pack(side="left")
-        
-        # テーマ変更ノート
-        theme_note = ctk.CTkLabel(
-            theme_frame, 
-            text="※テーマの変更は次回起動時に反映されます。",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=10),
-            text_color=self.colors["text_muted"]
-        )
-        theme_note.pack(anchor="w", padx=15, pady=(0, 15))
+        save_button.pack(side=tk.RIGHT)
     
     def _browse_output_dir(self):
-        """出力ディレクトリを選択"""
-        output_dir = filedialog.askdirectory(
-            title="出力先フォルダを選択",
-            initialdir=self.output_var.get()
+        """出力ディレクトリ参照ダイアログを表示"""
+        current_dir = self.output_dir_var.get()
+        if current_dir and os.path.isdir(current_dir):
+            initial_dir = current_dir
+        else:
+            initial_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # ディレクトリ選択ダイアログを表示
+        selected_dir = filedialog.askdirectory(
+            initialdir=initial_dir,
+            title="文字起こし結果の出力先を選択"
         )
         
-        if output_dir:
-            self.output_var.set(output_dir)
+        if selected_dir:
+            self.output_dir_var.set(selected_dir)
+    
+    def _update_model_description(self, event=None):
+        """モデルサイズの説明を更新"""
+        model = self.model_var.get()
+        
+        descriptions = {
+            "tiny": "最小のモデル (約39M)。最速ですが精度は低めです。低スペックのPCやノートPCでも動作します。",
+            "base": "小さいモデル (約74M)。精度と速度のバランスが良好です。一般的な使用に適しています。",
+            "small": "中小モデル (約244M)。baseより精度が良く、一般的なPCで十分な速度で動作します。",
+            "medium": "中型モデル (約769M)。高い精度を提供し、ある程度のGPUスペックが必要です。",
+            "large": "最大のモデル (約1.5G)。最高の精度を提供しますが、高いGPUスペックが必要で処理時間も長くなります。"
+        }
+        
+        if model in descriptions:
+            self.model_desc_var.set(descriptions[model])
+        else:
+            self.model_desc_var.set("")
     
     def _load_settings(self):
         """設定を読み込み"""
+        config = self.config_manager.get_config()
+        
         # モデル設定
-        model = self.config_manager.get("model", "small")
+        model = config.get("model", "medium")
         self.model_var.set(model)
+        self._update_model_description()
         
         # 言語設定
-        language = self.config_manager.get("language", "")
-        self.lang_var.set(language)
+        language_code = config.get("language", "")
+        language_name = "自動検出"
+        
+        # コードから言語名を逆引き
+        for name, code in self.lang_options.items():
+            if code == language_code:
+                language_name = name
+                break
+        
+        self.lang_var.set(language_name)
         
         # 出力ディレクトリ
-        output_dir = self.config_manager.get("output_dir", os.path.join(os.path.expanduser("~"), "Documents"))
-        self.output_var.set(output_dir)
-        
-        # タイムスタンプ形式
-        timestamp_format = self.config_manager.get("timestamp_format", "[%H:%M:%S.%f]")
-        self.timestamp_format_var.set(timestamp_format)
-        
-        # GPU使用設定
-        use_gpu = self.config_manager.get("use_gpu", True)
-        self.use_gpu_var.set(use_gpu)
-        
-        # スレッド数
-        threads = self.config_manager.get("threads", 4)
-        self.threads_var.set(str(threads))
-        
-        # テーマモード
-        theme_mode = self.config_manager.get("theme_mode", "light")
-        self.theme_mode_var.set(theme_mode)
+        output_dir = config.get("output_dir", "output")
+        self.output_dir_var.set(output_dir)
     
     def _save_settings(self):
         """設定を保存"""
-        try:
-            # モデル設定
-            self.config_manager.set("model", self.model_var.get())
-            
-            # 言語設定
-            self.config_manager.set("language", self.lang_var.get())
-            
-            # 出力ディレクトリ
-            self.config_manager.set("output_dir", self.output_var.get())
-            
-            # タイムスタンプ形式
-            self.config_manager.set("timestamp_format", self.timestamp_format_var.get())
-            
-            # GPU使用設定
-            self.config_manager.set("use_gpu", self.use_gpu_var.get())
-            
-            # スレッド数 (整数チェック)
-            try:
-                threads = int(self.threads_var.get())
-                if threads <= 0:
-                    raise ValueError("スレッド数は1以上の整数にしてください")
-                self.config_manager.set("threads", threads)
-            except ValueError as e:
-                messagebox.showerror("エラー", str(e))
-                return
-            
-            # テーマモード
-            self.config_manager.set("theme_mode", self.theme_mode_var.get())
-            
-            # 設定を保存
-            self.config_manager.save()
-            
-            # ウィンドウを閉じる
-            self.window.destroy()
-            
-            # 保存完了メッセージ
-            messagebox.showinfo("設定保存", "設定を保存しました。一部の設定は次回起動時に反映されます。")
-            
-        except Exception as e:
-            messagebox.showerror("エラー", f"設定の保存中にエラーが発生しました: {str(e)}") 
+        # 値を取得
+        model = self.model_var.get()
+        language_name = self.lang_var.get()
+        language_code = self.lang_options.get(language_name, "")
+        output_dir = self.output_dir_var.get()
+        
+        # 必須項目のチェック
+        if not model:
+            messagebox.showerror("エラー", "モデルサイズを選択してください。")
+            return
+        
+        # 出力ディレクトリが指定されていない場合はデフォルト値を設定
+        if not output_dir:
+            output_dir = "output"
+        
+        # 設定を更新
+        config = {
+            "model": model,
+            "language": language_code,
+            "output_dir": output_dir
+        }
+        
+        # 設定を保存
+        self.config_manager.update_config(config)
+        
+        # ダイアログを閉じる
+        self.window.destroy() 

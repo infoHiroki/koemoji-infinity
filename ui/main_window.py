@@ -7,411 +7,359 @@
 """
 
 import os
+import tkinter as tk
+from tkinter import ttk, filedialog, messagebox
+from PIL import Image, ImageTk
 import threading
 import datetime
-import customtkinter as ctk
-from tkinter import filedialog, messagebox
-from PIL import Image, ImageTk
 
 from transcriber import VideoTranscriber, AudioTranscriber
 from ui.settings_window import SettingsWindow
 from ui.result_window import ResultWindow
 
+# モダンなカラーパレット定義
+COLORS = {
+    "bg_primary": "#FAFAFA",        # 背景色（ほぼ白）
+    "bg_secondary": "#FFFFFF",      # 白背景
+    "accent": "#2196F3",            # アクセント色（青）
+    "accent_hover": "#1976D2",      # ホバー時のアクセント色（濃い青）
+    "success": "#4CAF50",           # 成功色（緑）
+    "warning": "#FF9800",           # 警告色（オレンジ）
+    "error": "#F44336",             # エラー色（赤）
+    "text_primary": "#212121",      # 主要テキスト（黒に近いグレー）
+    "text_secondary": "#757575",    # 副次テキスト（ミディアムグレー）
+    "text_light": "#FFFFFF",        # 明るいテキスト（白）
+    "border": "#E0E0E0",            # 標準ボーダー色（薄いグレー）
+}
+
 class MainWindow:
     """アプリケーションのメインウィンドウクラス"""
     
-    def __init__(self, root, config_manager, colors):
+    def __init__(self, root, config_manager):
         """
         初期化
         
         Args:
-            root (ctk.CTk): ルートウィンドウ
+            root (tk.Tk): ルートウィンドウ
             config_manager (ConfigManager): 設定管理オブジェクト
-            colors (dict): カラーパレット
         """
         self.root = root
         self.config_manager = config_manager
-        self.colors = colors
         self.files = []  # 処理対象ファイルリスト
         self.is_processing = False  # 処理中フラグ
         self.cancel_flag = False  # キャンセルフラグ
         
-        # UIコンポーネントの初期化
-        self._create_layout()
+        # ウィンドウの設定
+        self.root.title("音声・動画文字起こしアプリ")
+        self.root.minsize(600, 400)
+        self.root.configure(bg=COLORS["bg_primary"])
         
-    def _create_layout(self):
+        # スタイルの設定
+        self._setup_styles()
+        
+        # メインフレームレイアウト
+        self._create_main_layout()
+        
+        # 初期ステータス表示
+        self._update_status("ファイルを追加して文字起こしを開始してください")
+    
+    def _setup_styles(self):
+        """スタイルの設定"""
+        style = ttk.Style()
+        
+        # 標準フォント定義
+        heading_font = ("Segoe UI", 11, "bold")
+        normal_font = ("Segoe UI", 10)
+        small_font = ("Segoe UI", 9)
+        
+        # フレームのスタイル
+        style.configure("TFrame", background=COLORS["bg_primary"])
+        style.configure("Card.TFrame", background=COLORS["bg_secondary"], relief="flat")
+        
+        # ラベルのスタイル
+        style.configure("TLabel", background=COLORS["bg_primary"], foreground=COLORS["text_primary"], font=normal_font)
+        style.configure("Header.TLabel", background=COLORS["bg_primary"], foreground=COLORS["text_primary"], font=heading_font)
+        style.configure("Card.TLabel", background=COLORS["bg_secondary"], foreground=COLORS["text_primary"], font=normal_font)
+        style.configure("CardHeader.TLabel", background=COLORS["bg_secondary"], foreground=COLORS["text_primary"], font=heading_font)
+        style.configure("Status.TLabel", background=COLORS["bg_primary"], foreground=COLORS["text_secondary"], font=small_font)
+        
+        # プログレスバーのスタイル
+        style.configure("Horizontal.TProgressbar", 
+                       background=COLORS["accent"], 
+                       troughcolor=COLORS["bg_secondary"],
+                       borderwidth=0,
+                       thickness=6)
+
+    def _create_main_layout(self):
         """メインレイアウトを作成"""
-        # メインフレーム
-        self.main_frame = ctk.CTkFrame(self.root, fg_color=self.colors["bg_light"])
-        self.main_frame.pack(fill="both", expand=True)
+        # メインコンテナフレーム
+        self.main_frame = ttk.Frame(self.root, style="TFrame")
+        self.main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
         
-        # ヘッダーフレーム（アプリロゴとタイトル）
-        self._create_header()
+        # ヘッダーエリア
+        self._create_header_area()
         
-        # コンテンツフレーム（メインコンテンツ）
-        content_frame = ctk.CTkFrame(self.main_frame, fg_color=self.colors["bg_light"])
-        content_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        # ファイルエリアカード
+        self._create_files_card()
         
-        # 左右のカラムを作成
-        left_frame = ctk.CTkFrame(content_frame, fg_color=self.colors["bg_light"])
-        left_frame.pack(side="left", fill="both", expand=True, padx=(0, 10))
+        # 制御エリア
+        self._create_control_area()
         
-        right_frame = ctk.CTkFrame(content_frame, fg_color=self.colors["bg_light"])
-        right_frame.pack(side="right", fill="both", expand=True, padx=(10, 0), pady=10, ipadx=10)
-        
-        # 左側: ファイル選択エリア
-        self._create_file_selection_area(left_frame)
-        
-        # 右側: 設定とコントロールエリア
-        self._create_settings_area(right_frame)
-        self._create_control_buttons(right_frame)
-        
-        # フッター（ステータスバー）
-        self._create_status_bar()
+        # ステータスエリア
+        self._create_status_area()
     
-    def _create_header(self):
+    def _create_header_area(self):
         """ヘッダーエリアを作成"""
-        header_frame = ctk.CTkFrame(self.main_frame, fg_color=self.colors["primary"], height=80)
-        header_frame.pack(fill="x", pady=(0, 20))
+        header_frame = ttk.Frame(self.main_frame, style="TFrame")
+        header_frame.pack(fill=tk.X, pady=(0, 15))
         
-        # ロゴラベル
-        logo_label = ctk.CTkLabel(
+        # アプリタイトル
+        title_label = ttk.Label(
             header_frame, 
-            text="音声・動画文字起こしアプリ", 
-            font=ctk.CTkFont(family="Yu Gothic UI", size=20, weight="bold"),
-            text_color=self.colors["text_light"]
+            text="音声・動画文字起こし", 
+            style="Header.TLabel"
         )
-        logo_label.pack(side="left", padx=20, pady=20)
+        title_label.pack(side=tk.LEFT, anchor=tk.W)
         
-        # アイコンの読み込み（あれば）
-        if os.path.exists("resources/logo.png"):
-            try:
-                logo_image = Image.open("resources/logo.png")
-                logo_image = logo_image.resize((50, 50))
-                logo_photo = ImageTk.PhotoImage(logo_image)
-                
-                logo_icon = ctk.CTkLabel(header_frame, image=logo_photo, text="")
-                logo_icon.image = logo_photo  # 参照を保持
-                logo_icon.pack(side="right", padx=20, pady=15)
-            except Exception:
-                pass
+        # 設定ボタン
+        settings_button = tk.Button(
+            header_frame, 
+            text="⚙️ 設定", 
+            command=self._open_settings,
+            bg=COLORS["bg_primary"],
+            fg=COLORS["text_primary"],
+            font=("Segoe UI", 10),
+            relief="flat",
+            borderwidth=0,
+            padx=8,
+            pady=2,
+            activebackground=COLORS["bg_secondary"],
+            activeforeground=COLORS["text_primary"]
+        )
+        settings_button.pack(side=tk.RIGHT, padx=5)
     
-    def _create_file_selection_area(self, parent_frame):
-        """ファイル選択エリアを作成"""
-        # タイトルラベル
-        file_label = ctk.CTkLabel(
-            parent_frame, 
-            text="処理対象ファイル", 
-            font=ctk.CTkFont(family="Yu Gothic UI", size=16, weight="bold"),
-            text_color=self.colors["text_dark"]
-        )
-        file_label.pack(anchor="w", pady=(0, 10))
+    def _create_files_card(self):
+        """ファイルカードエリアを作成"""
+        # カードフレーム - 影の効果を持つ外側フレーム
+        card_outer = ttk.Frame(self.main_frame, style="TFrame")
+        card_outer.pack(fill=tk.BOTH, expand=True, pady=10)
         
-        # ファイルリストフレーム
-        file_frame = ctk.CTkFrame(parent_frame, fg_color=self.colors["bg_dark"], corner_radius=10)
-        file_frame.pack(fill="both", expand=True, pady=(0, 10))
+        # カードのメインフレーム
+        card_frame = ttk.Frame(card_outer, style="Card.TFrame")
+        card_frame.pack(fill=tk.BOTH, expand=True, padx=1, pady=1)
+        card_frame.configure(relief="solid", borderwidth=1)
+        
+        # カードヘッダー
+        card_header = ttk.Frame(card_frame, style="Card.TFrame")
+        card_header.pack(fill=tk.X, padx=15, pady=(15, 5))
+        
+        # カードタイトル
+        card_title = ttk.Label(
+            card_header, 
+            text="処理するファイル", 
+            style="CardHeader.TLabel"
+        )
+        card_title.pack(side=tk.LEFT, anchor=tk.W)
+        
+        # ファイルリスト領域
+        file_area = ttk.Frame(card_frame, style="Card.TFrame")
+        file_area.pack(fill=tk.BOTH, expand=True, padx=15, pady=(0, 10))
         
         # ファイルリストボックス
-        self.file_listbox = ctk.CTkTextbox(
-            file_frame,
-            wrap="none",
-            fg_color=self.colors["bg_dark"],
-            text_color=self.colors["text_dark"],
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            border_width=0
+        self.file_listbox = tk.Listbox(
+            file_area, 
+            selectmode=tk.EXTENDED,
+            bg=COLORS["bg_secondary"],
+            fg=COLORS["text_primary"],
+            selectbackground=COLORS["accent"],
+            selectforeground=COLORS["text_light"],
+            font=("Segoe UI", 10),
+            borderwidth=1,
+            relief="solid",
+            highlightthickness=0
         )
-        self.file_listbox.pack(fill="both", expand=True, padx=10, pady=10)
+        self.file_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
-        # ファイル操作ボタンフレーム
-        button_frame = ctk.CTkFrame(parent_frame, fg_color=self.colors["bg_light"])
-        button_frame.pack(fill="x", pady=10)
+        # スクロールバー
+        scrollbar = ttk.Scrollbar(file_area, orient=tk.VERTICAL, command=self.file_listbox.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.file_listbox.config(yscrollcommand=scrollbar.set)
+        
+        # ファイルボタンエリア
+        file_btn_area = ttk.Frame(card_frame, style="Card.TFrame")
+        file_btn_area.pack(fill=tk.X, padx=15, pady=(0, 15))
         
         # ファイル追加ボタン
-        add_button = ctk.CTkButton(
-            button_frame, 
+        add_btn = tk.Button(
+            file_btn_area, 
             text="ファイル追加", 
             command=self._add_files,
-            fg_color=self.colors["primary"],
-            hover_color=self.colors["primary_hover"],
-            text_color=self.colors["text_light"],
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            corner_radius=8,
-            height=35
+            bg=COLORS["accent"],
+            fg=COLORS["text_light"],
+            font=("Segoe UI", 10),
+            relief="flat",
+            borderwidth=0,
+            padx=12,
+            pady=6,
+            activebackground=COLORS["accent_hover"],
+            activeforeground=COLORS["text_light"]
         )
-        add_button.pack(side="left", padx=(0, 5), pady=5, fill="x", expand=True)
+        add_btn.pack(side=tk.LEFT, padx=(0, 5))
         
         # ファイル削除ボタン
-        remove_button = ctk.CTkButton(
-            button_frame, 
-            text="選択ファイル削除", 
-            command=self._remove_selected_file,
-            fg_color=self.colors["error"],
-            hover_color="#FF3B3B",
-            text_color=self.colors["text_light"],
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            corner_radius=8,
-            height=35
+        remove_btn = tk.Button(
+            file_btn_area, 
+            text="選択削除", 
+            command=self._remove_files,
+            bg=COLORS["bg_secondary"],
+            fg=COLORS["text_primary"],
+            font=("Segoe UI", 10),
+            relief="solid",
+            borderwidth=1,
+            padx=12,
+            pady=6,
+            activebackground=COLORS["border"],
+            activeforeground=COLORS["text_primary"]
         )
-        remove_button.pack(side="right", padx=(5, 0), pady=5, fill="x", expand=True)
+        remove_btn.pack(side=tk.LEFT, padx=5)
+        
+        # 全ファイル削除ボタン
+        clear_btn = tk.Button(
+            file_btn_area, 
+            text="全て削除", 
+            command=self._clear_files,
+            bg=COLORS["bg_secondary"],
+            fg=COLORS["text_primary"],
+            font=("Segoe UI", 10),
+            relief="solid",
+            borderwidth=1,
+            padx=12,
+            pady=6,
+            activebackground=COLORS["border"],
+            activeforeground=COLORS["text_primary"]
+        )
+        clear_btn.pack(side=tk.LEFT, padx=5)
     
-    def _create_settings_area(self, parent_frame):
-        """設定エリアを作成"""
-        # 設定タイトル
-        settings_label = ctk.CTkLabel(
-            parent_frame, 
-            text="文字起こし設定", 
-            font=ctk.CTkFont(family="Yu Gothic UI", size=16, weight="bold"),
-            text_color=self.colors["text_dark"]
-        )
-        settings_label.pack(anchor="w", pady=(0, 10))
+    def _create_control_area(self):
+        """コントロールエリアを作成"""
+        control_frame = ttk.Frame(self.main_frame, style="TFrame")
+        control_frame.pack(fill=tk.X, pady=15)
         
-        # 設定フレーム
-        settings_frame = ctk.CTkFrame(parent_frame, fg_color=self.colors["bg_dark"], corner_radius=10)
-        settings_frame.pack(fill="x", pady=(0, 20))
-        
-        # モデルサイズ設定
-        model_frame = ctk.CTkFrame(settings_frame, fg_color=self.colors["bg_dark"])
-        model_frame.pack(fill="x", padx=15, pady=10)
-        
-        model_label = ctk.CTkLabel(
-            model_frame, 
-            text="Whisperモデル:", 
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            text_color=self.colors["text_dark"]
-        )
-        model_label.pack(side="left", padx=(0, 10))
-        
-        self.model_var = ctk.StringVar(value=self.config_manager.get("model", "small"))
-        model_options = ["tiny", "base", "small", "medium", "large"]
-        model_menu = ctk.CTkOptionMenu(
-            model_frame, 
-            values=model_options,
-            variable=self.model_var,
-            fg_color=self.colors["primary"],
-            button_color=self.colors["primary"],
-            button_hover_color=self.colors["primary_hover"],
-            text_color=self.colors["text_light"],
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            dropdown_font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            width=120
-        )
-        model_menu.pack(side="right")
-        
-        # 言語設定
-        lang_frame = ctk.CTkFrame(settings_frame, fg_color=self.colors["bg_dark"])
-        lang_frame.pack(fill="x", padx=15, pady=10)
-        
-        lang_label = ctk.CTkLabel(
-            lang_frame, 
-            text="言語:", 
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            text_color=self.colors["text_dark"]
-        )
-        lang_label.pack(side="left", padx=(0, 10))
-        
-        self.lang_var = ctk.StringVar(value=self.config_manager.get("language", ""))
-        lang_entry = ctk.CTkEntry(
-            lang_frame, 
-            textvariable=self.lang_var,
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            width=120,
-            placeholder_text="自動検出"
-        )
-        lang_entry.pack(side="right")
-        
-        # 言語ヒント
-        lang_hint = ctk.CTkLabel(
-            settings_frame, 
-            text="言語コード例: ja (日本語), en (英語), zh (中国語), 空欄=自動検出",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=10),
-            text_color=self.colors["text_muted"]
-        )
-        lang_hint.pack(fill="x", padx=15, pady=(0, 10))
-        
-        # 出力ディレクトリ設定
-        output_frame = ctk.CTkFrame(settings_frame, fg_color=self.colors["bg_dark"])
-        output_frame.pack(fill="x", padx=15, pady=10)
-        
-        output_label = ctk.CTkLabel(
-            output_frame, 
-            text="出力先:", 
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            text_color=self.colors["text_dark"]
-        )
-        output_label.pack(side="left", padx=(0, 10))
-        
-        self.output_var = ctk.StringVar(value=self.config_manager.get("output_dir", os.path.join(os.path.expanduser("~"), "Documents")))
-        output_button = ctk.CTkButton(
-            output_frame, 
-            text="参照",
-            command=self._browse_output_dir,
-            fg_color=self.colors["secondary"],
-            hover_color="#FFB0C0",
-            text_color=self.colors["text_dark"],
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            width=60,
-            corner_radius=4
-        )
-        output_button.pack(side="right", padx=(10, 0))
-        
-        output_entry = ctk.CTkEntry(
-            output_frame, 
-            textvariable=self.output_var,
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            width=150
-        )
-        output_entry.pack(side="right", fill="x", expand=True)
-        
-        # 詳細設定ボタン
-        settings_button = ctk.CTkButton(
-            settings_frame, 
-            text="詳細設定",
-            command=self._open_settings,
-            fg_color=self.colors["secondary"],
-            hover_color="#FFB0C0",
-            text_color=self.colors["text_dark"],
-            font=ctk.CTkFont(family="Yu Gothic UI", size=12),
-            corner_radius=8,
-            height=30
-        )
-        settings_button.pack(padx=15, pady=15)
-    
-    def _create_control_buttons(self, parent_frame):
-        """コントロールボタンエリアを作成"""
-        # 処理開始ボタン
-        self.start_button = ctk.CTkButton(
-            parent_frame, 
-            text="文字起こし開始",
+        # 文字起こし開始ボタン
+        self.start_button = tk.Button(
+            control_frame, 
+            text="文字起こし開始", 
             command=self._start_transcription,
-            fg_color=self.colors["success"],
-            hover_color="#3D9A40",
-            text_color=self.colors["text_light"],
-            font=ctk.CTkFont(family="Yu Gothic UI", size=14, weight="bold"),
-            corner_radius=10,
-            height=45
+            bg=COLORS["success"],
+            fg=COLORS["text_light"],
+            font=("Segoe UI", 11, "bold"),
+            relief="flat",
+            borderwidth=0,
+            padx=20,
+            pady=8,
+            activebackground="#388E3C",  # 濃い緑
+            activeforeground=COLORS["text_light"]
         )
-        self.start_button.pack(fill="x", pady=(20, 10))
+        self.start_button.pack(side=tk.RIGHT, padx=5)
         
-        # キャンセルボタン（初期状態では無効）
-        self.cancel_button = ctk.CTkButton(
-            parent_frame, 
-            text="キャンセル",
+        # キャンセルボタン
+        self.cancel_button = tk.Button(
+            control_frame, 
+            text="キャンセル", 
             command=self._cancel_transcription,
-            fg_color=self.colors["error"],
-            hover_color="#FF3B3B",
-            text_color=self.colors["text_light"],
-            font=ctk.CTkFont(family="Yu Gothic UI", size=14, weight="bold"),
-            corner_radius=10,
-            height=45,
-            state="disabled"
+            bg=COLORS["error"],
+            fg=COLORS["text_light"],
+            font=("Segoe UI", 11),
+            relief="flat",
+            borderwidth=0,
+            padx=15,
+            pady=8,
+            activebackground="#D32F2F",  # 濃い赤
+            activeforeground=COLORS["text_light"],
+            state=tk.DISABLED
         )
-        self.cancel_button.pack(fill="x", pady=(0, 10))
+        self.cancel_button.pack(side=tk.RIGHT, padx=5)
     
-    def _create_status_bar(self):
-        """ステータスバーを作成"""
-        # ステータスフレーム
-        status_frame = ctk.CTkFrame(self.main_frame, fg_color=self.colors["bg_dark"], height=30)
-        status_frame.pack(fill="x", side="bottom")
+    def _create_status_area(self):
+        """ステータスエリアを作成"""
+        status_frame = ttk.Frame(self.main_frame, style="TFrame")
+        status_frame.pack(fill=tk.X, pady=(5, 0))
         
         # ステータスラベル
-        self.status_label = ctk.CTkLabel(
+        self.status_label = ttk.Label(
             status_frame, 
-            text="準備完了",
-            font=ctk.CTkFont(family="Yu Gothic UI", size=10),
-            text_color=self.colors["text_muted"]
+            text="", 
+            style="Status.TLabel"
         )
-        self.status_label.pack(side="left", padx=10)
+        self.status_label.pack(side=tk.LEFT, anchor=tk.W)
+        
+        # プログレスフレーム
+        progress_frame = ttk.Frame(self.main_frame, style="TFrame")
+        progress_frame.pack(fill=tk.X, pady=(5, 0))
         
         # プログレスバー
-        self.progress_bar = ctk.CTkProgressBar(
-            status_frame, 
-            width=200,
-            height=10,
-            progress_color=self.colors["primary"],
-            corner_radius=2
+        self.progress_bar = ttk.Progressbar(
+            progress_frame, 
+            orient=tk.HORIZONTAL, 
+            mode='determinate', 
+            style="Horizontal.TProgressbar"
         )
-        self.progress_bar.pack(side="right", padx=10, pady=10)
-        self.progress_bar.set(0)
+        self.progress_bar.pack(fill=tk.X)
     
     def _add_files(self):
         """ファイルを追加"""
         # ファイル選択ダイアログを表示
         file_types = [
-            ("対応ファイル", "*.mp4 *.avi *.mov *.mkv *.wmv *.flv *.webm *.mp3 *.wav *.ogg *.flac"),
+            ("サポートされているファイル", "*.mp4 *.mp3 *.wav *.avi *.mov *.flac *.ogg *.mkv *.wmv *.flv *.webm"),
             ("動画ファイル", "*.mp4 *.avi *.mov *.mkv *.wmv *.flv *.webm"),
             ("音声ファイル", "*.mp3 *.wav *.ogg *.flac"),
             ("すべてのファイル", "*.*")
         ]
-        
         new_files = filedialog.askopenfilenames(
-            title="文字起こしするファイルを選択",
+            title="文字起こし対象のファイルを選択",
             filetypes=file_types
         )
         
-        if not new_files:
+        if new_files:
+            # ファイルリストを更新
+            for file_path in new_files:
+                if file_path not in self.files:
+                    self.files.append(file_path)
+                    self.file_listbox.insert(tk.END, os.path.basename(file_path))
+            
+            # ステータス更新
+            self._update_status(f"{len(self.files)}個のファイルが追加されています")
+    
+    def _remove_files(self):
+        """選択されたファイルを削除"""
+        selected_indices = self.file_listbox.curselection()
+        if not selected_indices:
             return
         
-        # ファイルリストに追加
-        for file_path in new_files:
-            if file_path not in self.files:
-                self.files.append(file_path)
+        # 削除は後ろから行う（インデックスがずれるのを防ぐため）
+        for i in sorted(selected_indices, reverse=True):
+            self.file_listbox.delete(i)
+            del self.files[i]
         
-        # ファイルリストを更新
-        self._update_file_list()
+        # ステータス更新
+        self._update_status(f"{len(self.files)}個のファイルが追加されています")
     
-    def _remove_selected_file(self):
-        """選択されたファイルを削除"""
-        # 現在のテキスト位置を取得
-        try:
-            current_line = self.file_listbox.index("insert")
-            line_start = f"{int(float(current_line))}.0"
-            line_end = f"{int(float(current_line))}.end"
-            selected_line = self.file_listbox.get(line_start, line_end).strip()
-            
-            # 選択されたファイルを見つける
-            for i, file_path in enumerate(self.files):
-                if os.path.basename(file_path) in selected_line:
-                    del self.files[i]
-                    break
-            
-            # ファイルリストを更新
-            self._update_file_list()
-        except Exception:
-            messagebox.showwarning("選択エラー", "削除するファイルを選択してください。")
-    
-    def _update_file_list(self):
-        """ファイルリストを更新"""
-        # テキストボックスをクリア
-        self.file_listbox.delete("0.0", "end")
+    def _clear_files(self):
+        """全ファイルを削除"""
+        self.file_listbox.delete(0, tk.END)
+        self.files = []
         
-        # ファイルリストを表示
-        for i, file_path in enumerate(self.files):
-            file_name = os.path.basename(file_path)
-            file_size = os.path.getsize(file_path) / (1024 * 1024)  # MBに変換
-            file_info = f"{i+1}. {file_name} ({file_size:.1f} MB)\n"
-            self.file_listbox.insert("end", file_info)
-    
-    def _browse_output_dir(self):
-        """出力ディレクトリを選択"""
-        output_dir = filedialog.askdirectory(
-            title="出力先フォルダを選択",
-            initialdir=self.output_var.get()
-        )
-        
-        if output_dir:
-            self.output_var.set(output_dir)
-            # 設定を保存
-            self.config_manager.set("output_dir", output_dir)
-            self.config_manager.save()
+        # ステータス更新
+        self._update_status("ファイルを追加して文字起こしを開始してください")
     
     def _open_settings(self):
-        """詳細設定画面を開く"""
-        SettingsWindow(self.root, self.config_manager, self.colors)
+        """設定ウィンドウを開く"""
+        SettingsWindow(self.root, self.config_manager)
     
     def _start_transcription(self):
-        """文字起こし処理を開始"""
+        """文字起こしを開始"""
         if not self.files:
-            messagebox.showwarning("エラー", "処理対象ファイルが選択されていません。")
+            messagebox.showwarning("警告", "処理対象のファイルが追加されていません。\n文字起こしを行うファイルを追加してください。")
             return
         
         # 処理中フラグを設定
@@ -421,17 +369,20 @@ class MainWindow:
         # ボタンの状態を更新
         self._update_buttons_state()
         
-        # 設定を保存
-        model = self.model_var.get()
-        language = self.lang_var.get()
-        output_dir = self.output_var.get()
+        # 設定を取得
+        config = self.config_manager.get_config()
+        model = config.get("model", "medium")
+        language = config.get("language", "")
+        output_dir = config.get("output_dir", "output")
         
-        self.config_manager.set("model", model)
-        self.config_manager.set("language", language)
-        self.config_manager.set("output_dir", output_dir)
-        self.config_manager.save()
+        # 出力ディレクトリがなければ作成
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir, exist_ok=True)
         
-        # 処理スレッドを開始
+        # プログレスバーをリセット
+        self.progress_bar["value"] = 0
+        
+        # 処理スレッドを起動
         thread = threading.Thread(
             target=self._process_files,
             args=(self.files.copy(), model, language, output_dir)
@@ -440,13 +391,14 @@ class MainWindow:
         thread.start()
     
     def _cancel_transcription(self):
-        """文字起こし処理をキャンセル"""
-        self.cancel_flag = True
-        self._update_status("キャンセル中...", -1)
+        """文字起こしをキャンセル"""
+        if self.is_processing:
+            self.cancel_flag = True
+            self._update_status("文字起こしをキャンセルしています...")
     
     def _process_files(self, file_list, model, language, output_dir):
         """
-        ファイルを順に処理
+        ファイルの処理を実行
         
         Args:
             file_list (list): 処理対象ファイルのリスト
@@ -455,140 +407,121 @@ class MainWindow:
             output_dir (str): 出力ディレクトリ
         """
         total_files = len(file_list)
-        processed_files = 0
         
-        for file_path in file_list:
+        # 進捗更新用のコールバック関数
+        def update_progress(status, progress):
+            self._update_progress(status, progress)
+        
+        for i, file_path in enumerate(file_list):
             if self.cancel_flag:
+                self._update_progress_gui("文字起こしがキャンセルされました", 0)
                 break
             
-            # ファイル名を取得
             file_name = os.path.basename(file_path)
-            file_base_name = os.path.splitext(file_name)[0]
+            file_extension = os.path.splitext(file_path)[1].lower()
             
-            # 進捗状況の更新関数
-            def update_progress(status, progress):
-                if progress >= 0:
-                    # 全体の進捗を計算
-                    overall_progress = (processed_files + progress / 100) / total_files
-                    self._update_status(f"{file_name}: {status}", overall_progress)
-                else:
-                    self._update_status(f"{file_name}: {status}", -1)
+            # 全体の進捗率を計算（ファイル単位）
+            base_progress = (i / total_files) * 100
             
             try:
-                # ファイル拡張子から処理方法を判断
-                ext = os.path.splitext(file_path)[1].lower()
-                if ext in ['.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv', '.webm']:
-                    # 動画ファイルの処理
-                    transcriber = VideoTranscriber(model, language, update_progress)
-                    result = transcriber.process_video(file_path)
-                elif ext in ['.mp3', '.wav', '.ogg', '.flac']:
-                    # 音声ファイルの処理
-                    transcriber = AudioTranscriber(model, language, update_progress)
-                    result = transcriber.process_audio(file_path)
-                else:
-                    raise Exception(f"未対応のファイル形式です: {ext}")
+                # ファイル処理のステータス更新
+                self._update_progress(f"処理中: {file_name} ({i+1}/{total_files})", base_progress)
                 
-                # キャンセルされた場合は結果を保存しない
-                if self.cancel_flag:
+                # ファイルの種類に応じたトランスクライバーを作成
+                audio_extensions = ['.mp3', '.wav', '.flac', '.ogg']
+                video_extensions = ['.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv', '.webm']
+                
+                transcript = None
+                result_file = None
+                
+                # 動画ファイルの場合
+                if file_extension in video_extensions:
+                    transcriber = VideoTranscriber(file_path, model, language, progress_callback=update_progress)
+                    transcript, result_file = transcriber.transcribe(output_dir, base_progress)
+                
+                # 音声ファイルの場合
+                elif file_extension in audio_extensions:
+                    transcriber = AudioTranscriber(file_path, model, language, progress_callback=update_progress)
+                    transcript, result_file = transcriber.transcribe(output_dir, base_progress)
+                
+                # サポートされていないファイル形式
+                else:
+                    self._update_progress(f"エラー: サポートされていないファイル形式です - {file_extension}", base_progress)
                     continue
                 
-                # 出力ディレクトリが存在しない場合は作成
-                if not os.path.exists(output_dir):
-                    os.makedirs(output_dir)
+                # キャンセルされた場合
+                if self.cancel_flag:
+                    self._update_progress_gui("文字起こしがキャンセルされました", 0)
+                    break
                 
-                # 結果を保存
-                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                output_file = os.path.join(output_dir, f"{file_base_name}_{timestamp}.txt")
-                
-                # 整形された文字起こし結果
-                formatted_result = ""
-                
-                # タイムスタンプ付きの文字起こし結果を作成
-                for segment in result["segments"]:
-                    start_time = self._format_time(segment["start"])
-                    end_time = self._format_time(segment["end"])
-                    text = segment["text"].strip()
-                    formatted_result += f"[{start_time} --> {end_time}] {text}\n\n"
-                
-                # ファイルに保存
-                with open(output_file, "w", encoding="utf-8") as f:
-                    f.write(formatted_result)
-                
-                # 結果画面を表示
-                self.root.after(0, lambda: ResultWindow(self.root, formatted_result, file_name, self.colors))
-                
-                # 処理済みファイル数をインクリメント
-                processed_files += 1
-                
+                # 文字起こし結果を表示
+                if transcript:
+                    self.root.after(0, lambda t=transcript, n=file_name: ResultWindow(self.root, t, n))
+            
             except Exception as e:
-                # エラーメッセージを表示
-                error_msg = f"エラー: {str(e)}"
-                self.root.after(0, lambda msg=error_msg: messagebox.showerror("処理エラー", msg))
-                
-                # 進捗状況を更新
-                self._update_status(f"エラー: {file_name}", -1)
+                # エラーが発生した場合
+                error_message = f"エラー: {file_name} の処理中にエラーが発生しました - {str(e)}"
+                self._update_progress(error_message, base_progress)
+                print(error_message)
         
-        # 処理完了時
-        if self.cancel_flag:
-            self._update_status("処理がキャンセルされました", 0)
-        else:
-            self._update_status(f"処理完了: {processed_files}/{total_files}ファイル", 1)
+        # 全ファイルの処理完了
+        if not self.cancel_flag:
+            self._update_progress_gui("文字起こしが完了しました", 100)
         
-        # 処理中フラグをクリア
+        # 処理完了
         self.is_processing = False
-        self.cancel_flag = False
-        
-        # ボタンの状態を更新
-        self.root.after(0, self._update_buttons_state)
+        self._update_buttons_state()
     
     def _format_time(self, seconds):
         """
-        秒数を時:分:秒.ミリ秒 形式にフォーマット
+        秒数を時:分:秒形式にフォーマット
         
         Args:
             seconds (float): 秒数
             
         Returns:
-            str: フォーマットされた時間
+            str: フォーマットされた時間文字列
         """
-        hours = int(seconds // 3600)
-        minutes = int((seconds % 3600) // 60)
-        seconds = seconds % 60
-        return f"{hours:02}:{minutes:02}:{seconds:06.3f}"
+        m, s = divmod(int(seconds), 60)
+        h, m = divmod(m, 60)
+        return f"{h:02d}:{m:02d}:{s:02d}"
     
-    def _update_status(self, status, progress):
+    def _update_progress(self, status, progress):
         """
-        ステータスと進捗を更新
+        進捗状況を更新
         
         Args:
-            status (str): ステータステキスト
-            progress (float): 進捗率 (0.0 to 1.0, -1 for indeterminate)
+            status (str): ステータスメッセージ
+            progress (float): 進捗率(0-100)
         """
-        self.root.after(0, lambda: self._update_status_gui(status, progress))
+        # GUIの更新はメインスレッドで実行
+        self.root.after(0, lambda: self._update_progress_gui(status, progress))
     
-    def _update_status_gui(self, status, progress):
+    def _update_progress_gui(self, status, progress):
         """
-        GUIスレッドでステータスと進捗を更新
+        GUI上の進捗表示を更新（メインスレッドから呼び出す）
         
         Args:
-            status (str): ステータステキスト
-            progress (float): 進捗率 (0.0 to 1.0, -1 for indeterminate)
+            status (str): ステータスメッセージ
+            progress (float): 進捗率(0-100)
         """
-        # ステータスラベルを更新
-        self.status_label.configure(text=status)
+        # ステータス更新
+        self._update_status(status)
         
-        # プログレスバーを更新
-        if progress >= 0:
-            self.progress_bar.set(progress)
-        else:
-            # 不定状態の表示（今回は0に設定）
-            self.progress_bar.set(0)
+        # プログレスバー更新
+        self.progress_bar["value"] = progress
+    
+    def _update_status(self, message):
+        """ステータスメッセージを更新"""
+        self.status_label.config(text=message)
     
     def _update_buttons_state(self):
         """ボタンの状態を更新"""
         if self.is_processing:
-            self.start_button.configure(state="disabled")
-            self.cancel_button.configure(state="normal")
+            # 処理中
+            self.start_button.config(state=tk.DISABLED)
+            self.cancel_button.config(state=tk.NORMAL)
         else:
-            self.start_button.configure(state="normal")
-            self.cancel_button.configure(state="disabled") 
+            # 待機中
+            self.start_button.config(state=tk.NORMAL)
+            self.cancel_button.config(state=tk.DISABLED) 
