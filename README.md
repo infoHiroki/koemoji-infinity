@@ -1,6 +1,6 @@
-# 動画文字起こしアプリケーション
+# 動画・音声文字起こしアプリケーション
 
-OpenAI Whisperを使用して動画ファイルから音声を抽出し、自動的に文字起こしを行うデスクトップアプリケーションです。
+OpenAI Whisperを使用して動画や音声ファイルから音声を抽出し、自動的に文字起こしを行うデスクトップアプリケーションです。
 
 ## 機能
 
@@ -11,6 +11,7 @@ OpenAI Whisperを使用して動画ファイルから音声を抽出し、自動
 - 日本語を含む多言語対応
 - 文字起こし結果のタイムスタンプ付きテキスト出力
 - GPU高速化（CUDAまたはROCm対応GPUがある場合）
+- ピンクを基調としたやわらかい印象のUI
 
 ## インストール方法
 
@@ -23,8 +24,8 @@ OpenAI Whisperを使用して動画ファイルから音声を抽出し、自動
 
 1. リポジトリをクローン：
    ```
-   git clone https://github.com/yourusername/video-transcriber.git
-   cd video-transcriber
+   git clone https://github.com/yourusername/audio-video-transcriber.git
+   cd audio-video-transcriber
    ```
 
 2. 依存パッケージのインストール：
@@ -48,6 +49,23 @@ python main.py
 2. 必要に応じて設定を調整
 3. 「文字起こし開始」ボタンをクリックして処理を開始
 4. 処理完了後、結果を確認して保存
+
+## プロジェクト構成
+
+```
+.
+├── main.py           # アプリケーションのエントリーポイント
+├── transcriber.py    # 文字起こし処理のメインロジック
+├── config.json       # アプリケーション設定ファイル
+├── requirements.txt  # 依存パッケージリスト
+├── ui/               # ユーザーインターフェース関連ファイル
+│   ├── main_window.py     # メインウィンドウの実装
+│   ├── settings_window.py # 設定ウィンドウの実装
+│   └── result_window.py   # 結果表示ウィンドウの実装
+├── utils/            # ユーティリティ関数と補助クラス
+│   └── config_manager.py  # 設定管理クラス
+└── resources/        # リソースファイル（アイコンなど）
+```
 
 ## ライセンス
 
