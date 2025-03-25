@@ -42,8 +42,8 @@ class SettingsWindow:
         # 設定ウィンドウを作成
         self.window = tk.Toplevel(parent)
         self.window.title("設定")
-        self.window.geometry("520x520")
-        self.window.minsize(450, 500)
+        self.window.geometry("520x600")
+        self.window.minsize(450, 600)
         self.window.transient(parent)
         self.window.grab_set()
         self.window.configure(bg=COLORS["bg_primary"])
