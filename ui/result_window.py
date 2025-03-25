@@ -46,6 +46,9 @@ class ResultWindow:
         self.window.minsize(500, 400)
         self.window.configure(bg=COLORS["bg_primary"])
         
+        # ウィンドウを画面中央に配置
+        self._center_window(parent)
+        
         # スタイルの設定
         self._setup_styles()
         
@@ -252,6 +255,41 @@ class ResultWindow:
                     self._open_file(file_path)
             except Exception as e:
                 messagebox.showerror("エラー", f"ファイルの保存中にエラーが発生しました:\n{str(e)}")
+    
+    def _center_window(self, parent):
+        """ウィンドウを画面中央に配置"""
+        # ウィンドウのサイズを取得
+        window_width = 700
+        window_height = 550
+        
+        # 親ウィンドウの位置とサイズを取得
+        parent_x = parent.winfo_rootx()
+        parent_y = parent.winfo_rooty()
+        parent_width = parent.winfo_width()
+        parent_height = parent.winfo_height()
+        
+        # 親ウィンドウの中央に配置
+        center_x = parent_x + int((parent_width - window_width) / 2)
+        center_y = parent_y + int((parent_height - window_height) / 2)
+        
+        # 画面の範囲内に収める
+        screen_width = parent.winfo_screenwidth()
+        screen_height = parent.winfo_screenheight()
+        
+        # X座標が画面外にならないよう調整
+        if center_x + window_width > screen_width:
+            center_x = screen_width - window_width
+        if center_x < 0:
+            center_x = 0
+            
+        # Y座標が画面外にならないよう調整
+        if center_y + window_height > screen_height:
+            center_y = screen_height - window_height
+        if center_y < 0:
+            center_y = 0
+        
+        # ウィンドウの位置を設定
+        self.window.geometry(f"{window_width}x{window_height}+{center_x}+{center_y}")
     
     def _open_file(self, file_path):
         """保存したファイルを開く"""

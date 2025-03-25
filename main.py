@@ -49,6 +49,19 @@ def main():
     root.geometry("900x650")
     root.configure(bg=COLORS["bg_primary"])
     
+    # ウィンドウを画面中央に配置
+    # ウィンドウサイズを取得
+    window_width = 900
+    window_height = 650
+    # 画面サイズを取得
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    # 中央の座標を計算
+    center_x = int((screen_width - window_width) / 2)
+    center_y = int((screen_height - window_height) / 2)
+    # ウィンドウの位置を設定
+    root.geometry(f"{window_width}x{window_height}+{center_x}+{center_y}")
+    
     # フォントの設定
     default_font = ("Segoe UI", 10)
     root.option_add("*Font", default_font)
