@@ -14,11 +14,11 @@ def create_shortcut():
     """デスクトップにショートカットを作成"""
     # 現在のディレクトリ
     current_dir = os.path.abspath(os.path.dirname(__file__))
-    # バッチファイルのパス
-    bat_path = os.path.join(current_dir, "run_app.bat")
+    # VBScriptファイルのパス
+    vbs_path = os.path.join(current_dir, "run_hidden.vbs")
     
-    if not os.path.exists(bat_path):
-        print(f"エラー: {bat_path} が見つかりません。")
+    if not os.path.exists(vbs_path):
+        print(f"エラー: {vbs_path} が見つかりません。")
         return False
     
     # デスクトップのパス
@@ -29,7 +29,7 @@ def create_shortcut():
     
     shell = Dispatch('WScript.Shell')
     shortcut = shell.CreateShortCut(shortcut_path)
-    shortcut.Targetpath = bat_path
+    shortcut.Targetpath = vbs_path
     shortcut.WorkingDirectory = current_dir
     shortcut.Description = "音声・動画の文字起こしアプリ"
     shortcut.IconLocation = os.path.join(current_dir, "resources", "icon.ico")
