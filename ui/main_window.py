@@ -17,21 +17,19 @@ from transcriber import VideoTranscriber, AudioTranscriber
 from ui.settings_window import SettingsWindow
 from ui.result_window import ResultWindow
 
-# モダンなカラーパレット定義
+# 標準的なカラーパレット定義
 COLORS = {
-    "bg_primary": "#F5F7FA",        # 背景色（明るいグレー）
-    "bg_secondary": "#FFFFFF",      # セカンダリ背景（白）
-    "accent_primary": "#4361EE",    # メインアクセント（青）
-    "accent_secondary": "#3F37C9",  # セカンダリアクセント（濃い青）
-    "accent_light": "#4895EF",      # 明るいアクセント（薄い青）
-    "success": "#4CC9B0",           # 成功色（緑）
-    "warning": "#F72585",           # 警告色（ピンク）
-    "error": "#E63946",             # エラー色（赤）
-    "text_primary": "#2B2D42",      # 主要テキスト（濃紺）
-    "text_secondary": "#6C757D",    # 副次テキスト（グレー）
+    "bg_primary": "#F0F0F0",        # 標準的な背景色（薄いグレー）
+    "bg_secondary": "#FFFFFF",      # 白背景
+    "accent": "#0078D7",            # Windows標準の青
+    "accent_hover": "#106EBE",      # ホバー時の青
+    "success": "#107C10",           # 成功色（緑）
+    "warning": "#D83B01",           # 警告色（オレンジ）
+    "error": "#E81123",             # エラー色（赤）
+    "text_primary": "#000000",      # 主要テキスト（黒）
+    "text_secondary": "#666666",    # 副次テキスト（グレー）
     "text_light": "#FFFFFF",        # 明るいテキスト（白）
-    "border": "#DEE2E6",            # ボーダー色（薄灰）
-    "hover": "#3A0CA3",             # ホバー色（紫）
+    "border": "#CCCCCC",            # 標準ボーダー色
 }
 
 class MainWindow:
@@ -42,31 +40,31 @@ class MainWindow:
         初期化
         
         Args:
-            root (tk.Tk): Tkinterのルートウィンドウ
+            root (tk.Tk): ルートウィンドウ
             config_manager (ConfigManager): 設定管理オブジェクト
         """
         self.root = root
         self.config_manager = config_manager
-        self.file_list = []  # 処理対象ファイルリスト
-        self.processing = False  # 処理中フラグ
-        self.current_task = None  # 現在の処理タスク
-        
-        # スタイルの設定
-        self._setup_styles()
+        self.files = []  # 処理対象ファイルリスト
+        self.is_processing = False  # 処理中フラグ
+        self.cancel_flag = False  # キャンセルフラグ
         
         # ウィンドウの設定
         self.root.title("音声・動画文字起こしアプリ")
         self.root.minsize(600, 400)
         self.root.configure(bg=COLORS["bg_primary"])
         
+        # スタイルの設定
+        self._setup_styles()
+        
         # メインフレームの作成
-        self.main_frame = ttk.Frame(self.root, padding=15, style="Modern.TFrame")
-        self.main_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
+        self.main_frame = ttk.Frame(self.root, padding=10, style="TFrame")
+        self.main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
         # ファイル選択エリアの作成
         self._create_file_selection_area()
         
-        # 操作ボタンエリアの作成
+        # コントロールボタンの作成
         self._create_control_buttons()
         
         # ステータスバーの作成
@@ -76,126 +74,52 @@ class MainWindow:
         """スタイルの設定"""
         style = ttk.Style()
         
-        # フォント定義
-        heading_font = ("Segoe UI", 12, "bold")
-        normal_font = ("Segoe UI", 10)
-        small_font = ("Segoe UI", 9)
-        button_font = ("Segoe UI", 10, "bold")
+        # 標準フォント定義
+        heading_font = ("Yu Gothic UI", 11, "bold")
+        normal_font = ("Yu Gothic UI", 10)
+        small_font = ("Yu Gothic UI", 9)
         
         # フレームのスタイル
-        style.configure("Modern.TFrame", background=COLORS["bg_primary"])
-        style.configure("ModernWhite.TFrame", background=COLORS["bg_secondary"])
-        style.configure("ModernBorder.TFrame", 
-                       background=COLORS["bg_secondary"], 
-                       borderwidth=1, 
-                       relief="solid", 
-                       bordercolor=COLORS["border"])
+        style.configure("TFrame", background=COLORS["bg_primary"])
+        style.configure("White.TFrame", background=COLORS["bg_secondary"])
         
         # ラベルフレームのスタイル
-        style.configure("Modern.TLabelframe", background=COLORS["bg_primary"])
-        style.configure("Modern.TLabelframe.Label", 
+        style.configure("TLabelframe", background=COLORS["bg_primary"])
+        style.configure("TLabelframe.Label", 
                        background=COLORS["bg_primary"], 
-                       foreground=COLORS["accent_primary"], 
+                       foreground=COLORS["text_primary"], 
                        font=heading_font)
         
-        # ボタンのスタイル - メインボタン（青）
-        style.configure("Modern.TButton", 
-                       background=COLORS["accent_primary"],
-                       foreground=COLORS["text_light"],
-                       font=button_font,
-                       padding=(10, 6))
-        style.map("Modern.TButton",
-                 background=[("active", COLORS["accent_secondary"]), 
-                            ("pressed", COLORS["accent_secondary"]),
-                            ("disabled", "#A0A0A0"),
-                            ("readonly", COLORS["accent_primary"]),
-                            ("!disabled", COLORS["accent_primary"])],
-                 foreground=[("active", COLORS["text_light"]), 
-                            ("pressed", COLORS["text_light"]),
-                            ("disabled", "#D0D0D0"),
-                            ("readonly", COLORS["text_light"]),
-                            ("!disabled", COLORS["text_light"])])
-        
-        # アクションボタン（重要なアクション用）
-        style.configure("Action.TButton", 
-                       background=COLORS["accent_secondary"],
-                       foreground=COLORS["text_light"],
-                       font=button_font,
-                       padding=(15, 8))
-        style.map("Action.TButton",
-                 background=[("active", COLORS["hover"]), 
-                            ("pressed", COLORS["accent_secondary"]),
-                            ("disabled", "#A0A0A0"),
-                            ("readonly", COLORS["accent_secondary"]),
-                            ("!disabled", COLORS["accent_secondary"])],
-                 foreground=[("active", COLORS["text_light"]), 
-                            ("pressed", COLORS["text_light"]),
-                            ("disabled", "#D0D0D0"),
-                            ("readonly", COLORS["text_light"]),
-                            ("!disabled", COLORS["text_light"])])
-        
-        # キャンセルボタン（警告アクション用）
-        style.configure("Cancel.TButton", 
-                       background=COLORS["warning"],
-                       foreground=COLORS["text_light"],
-                       font=button_font,
-                       padding=(15, 8))
-        style.map("Cancel.TButton",
-                 background=[("active", COLORS["error"]), 
-                            ("pressed", COLORS["warning"]),
-                            ("disabled", "#A0A0A0"),
-                            ("readonly", COLORS["warning"]),
-                            ("!disabled", COLORS["warning"])],
-                 foreground=[("active", COLORS["text_light"]), 
-                            ("pressed", COLORS["text_light"]),
-                            ("disabled", "#D0D0D0"),
-                            ("readonly", COLORS["text_light"]),
-                            ("!disabled", COLORS["text_light"])])
-        
         # ラベルのスタイル
-        style.configure("Modern.TLabel", 
+        style.configure("TLabel", 
                        background=COLORS["bg_primary"], 
                        foreground=COLORS["text_primary"], 
                        font=normal_font)
         
-        # 見出しラベルのスタイル
-        style.configure("Heading.TLabel", 
-                       background=COLORS["bg_primary"], 
-                       foreground=COLORS["accent_secondary"], 
-                       font=heading_font)
-        
-        # 情報ラベルのスタイル
-        style.configure("Info.TLabel", 
-                       background=COLORS["bg_primary"], 
-                       foreground=COLORS["text_secondary"], 
-                       font=small_font)
-        
         # プログレスバーのスタイル
-        style.configure("Modern.Horizontal.TProgressbar", 
-                       background=COLORS["accent_primary"], 
+        style.configure("Horizontal.TProgressbar", 
+                       background=COLORS["accent"], 
                        troughcolor=COLORS["bg_secondary"],
                        borderwidth=0,
-                       thickness=10)
+                       thickness=8)
     
     def _create_file_selection_area(self):
         """ファイル選択エリアを作成"""
         # フレームの作成
-        file_frame = ttk.LabelFrame(self.main_frame, text="処理対象ファイル", padding=10, style="Modern.TLabelframe")
+        file_frame = ttk.LabelFrame(self.main_frame, text="処理対象ファイル", padding=8)
         file_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         
-        # ファイルリストの作成（Tkinterのネイティブウィジェット用のスタイル）
+        # ファイルリストボックスの作成
         self.file_listbox = tk.Listbox(
             file_frame, 
             selectmode=tk.EXTENDED,
             bg=COLORS["bg_secondary"],
             fg=COLORS["text_primary"],
-            selectbackground=COLORS["accent_primary"],
+            selectbackground=COLORS["accent"],
             selectforeground=COLORS["text_light"],
-            font=("Segoe UI", 10),
+            font=("Yu Gothic UI", 10),
             borderwidth=1,
-            relief="solid",
-            highlightthickness=1,
-            highlightcolor=COLORS["border"]
+            relief="solid"
         )
         self.file_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=2, pady=2)
         
@@ -205,91 +129,147 @@ class MainWindow:
         self.file_listbox.config(yscrollcommand=scrollbar.set)
         
         # ファイル操作ボタンフレームの作成
-        file_button_frame = ttk.Frame(self.main_frame, style="Modern.TFrame")
+        file_button_frame = ttk.Frame(self.main_frame, style="TFrame")
         file_button_frame.pack(fill=tk.X, padx=5, pady=5)
         
         # ファイル追加ボタン
-        add_button = ttk.Button(
+        add_button = tk.Button(
             file_button_frame, 
             text="ファイル追加", 
-            command=self._add_files, 
-            style="Modern.TButton"
+            command=self._add_files,
+            bg=COLORS["accent"],
+            fg=COLORS["text_light"],
+            font=("Yu Gothic UI", 10),
+            relief="flat",
+            borderwidth=1,
+            padx=10,
+            pady=3,
+            activebackground=COLORS["accent_hover"],
+            activeforeground=COLORS["text_light"]
         )
         add_button.pack(side=tk.LEFT, padx=5, pady=5)
         
         # ファイル削除ボタン
-        remove_button = ttk.Button(
+        remove_button = tk.Button(
             file_button_frame, 
             text="選択ファイル削除", 
-            command=self._remove_files, 
-            style="Modern.TButton"
+            command=self._remove_files,
+            bg=COLORS["accent"],
+            fg=COLORS["text_light"],
+            font=("Yu Gothic UI", 10),
+            relief="flat",
+            borderwidth=1,
+            padx=10,
+            pady=3,
+            activebackground=COLORS["accent_hover"],
+            activeforeground=COLORS["text_light"]
         )
         remove_button.pack(side=tk.LEFT, padx=5, pady=5)
         
         # 全ファイル削除ボタン
-        clear_button = ttk.Button(
+        clear_button = tk.Button(
             file_button_frame, 
             text="全ファイル削除", 
-            command=self._clear_files, 
-            style="Modern.TButton"
+            command=self._clear_files,
+            bg=COLORS["accent"],
+            fg=COLORS["text_light"],
+            font=("Yu Gothic UI", 10),
+            relief="flat",
+            borderwidth=1,
+            padx=10,
+            pady=3,
+            activebackground=COLORS["accent_hover"],
+            activeforeground=COLORS["text_light"]
         )
         clear_button.pack(side=tk.LEFT, padx=5, pady=5)
     
     def _create_control_buttons(self):
         """操作ボタンエリアを作成"""
         # フレームの作成
-        control_frame = ttk.Frame(self.main_frame, style="Modern.TFrame")
+        control_frame = ttk.Frame(self.main_frame, style="TFrame")
         control_frame.pack(fill=tk.X, padx=5, pady=10)
         
         # 設定ボタン
-        settings_button = ttk.Button(
+        settings_button = tk.Button(
             control_frame, 
             text="設定", 
-            command=self._open_settings, 
-            style="Modern.TButton"
+            command=self._open_settings,
+            bg=COLORS["bg_primary"],
+            fg=COLORS["text_primary"],
+            font=("Yu Gothic UI", 10),
+            relief="solid",
+            borderwidth=1,
+            padx=10,
+            pady=3,
+            activebackground=COLORS["bg_secondary"],
+            activeforeground=COLORS["text_primary"]
         )
         settings_button.pack(side=tk.LEFT, padx=5, pady=5)
         
         # 履歴ボタン
-        history_button = ttk.Button(
+        history_button = tk.Button(
             control_frame, 
             text="履歴", 
-            command=self._open_history, 
-            style="Modern.TButton"
+            command=self._open_history,
+            bg=COLORS["bg_primary"],
+            fg=COLORS["text_primary"],
+            font=("Yu Gothic UI", 10),
+            relief="solid",
+            borderwidth=1,
+            padx=10,
+            pady=3,
+            activebackground=COLORS["bg_secondary"],
+            activeforeground=COLORS["text_primary"]
         )
         history_button.pack(side=tk.LEFT, padx=5, pady=5)
         
         # 文字起こし開始ボタン
-        self.start_button = ttk.Button(
+        self.start_button = tk.Button(
             control_frame, 
             text="文字起こし開始", 
-            command=self._start_transcription, 
-            style="Action.TButton"
+            command=self._start_transcription,
+            bg=COLORS["success"],
+            fg=COLORS["text_light"],
+            font=("Yu Gothic UI", 10, "bold"),
+            relief="flat",
+            borderwidth=1,
+            padx=15,
+            pady=5,
+            activebackground="#0B6A0B",
+            activeforeground=COLORS["text_light"]
         )
         self.start_button.pack(side=tk.RIGHT, padx=5, pady=5)
         
         # キャンセルボタン
-        self.cancel_button = ttk.Button(
+        self.cancel_button = tk.Button(
             control_frame, 
             text="キャンセル", 
-            command=self._cancel_transcription, 
-            state=tk.DISABLED, 
-            style="Cancel.TButton"
+            command=self._cancel_transcription,
+            bg=COLORS["warning"],
+            fg=COLORS["text_light"],
+            font=("Yu Gothic UI", 10),
+            relief="flat",
+            borderwidth=1,
+            padx=15,
+            pady=5,
+            activebackground=COLORS["error"],
+            activeforeground=COLORS["text_light"],
+            state=tk.DISABLED
         )
         self.cancel_button.pack(side=tk.RIGHT, padx=5, pady=5)
     
     def _create_status_bar(self):
         """ステータスバーを作成"""
         # フレームの作成
-        status_frame = ttk.Frame(self.main_frame, style="ModernBorder.TFrame")
+        status_frame = ttk.Frame(self.main_frame, style="TFrame")
         status_frame.pack(fill=tk.X, padx=5, pady=5)
         
         # ステータスラベル
-        self.status_label = ttk.Label(status_frame, text="準備完了", style="Modern.TLabel")
+        self.status_label = ttk.Label(status_frame, text="準備完了", style="TLabel")
         self.status_label.pack(side=tk.LEFT, padx=10, pady=8)
         
         # 進捗バー
-        self.progress_bar = ttk.Progressbar(status_frame, orient=tk.HORIZONTAL, length=300, mode='determinate', style="Modern.Horizontal.TProgressbar")
+        self.progress_bar = ttk.Progressbar(status_frame, orient=tk.HORIZONTAL, length=300, mode='determinate', style="Horizontal.TProgressbar")
         self.progress_bar.pack(side=tk.RIGHT, padx=10, pady=8)
     
     def _add_files(self):
@@ -306,8 +286,8 @@ class MainWindow:
         
         if file_paths:
             for file_path in file_paths:
-                if file_path not in self.file_list:
-                    self.file_list.append(file_path)
+                if file_path not in self.files:
+                    self.files.append(file_path)
                     self.file_listbox.insert(tk.END, os.path.basename(file_path))
     
     def _remove_files(self):
@@ -316,12 +296,12 @@ class MainWindow:
         
         # 逆順に削除（インデックスがずれるのを防ぐため）
         for i in sorted(selected_indices, reverse=True):
-            del self.file_list[i]
+            del self.files[i]
             self.file_listbox.delete(i)
     
     def _clear_files(self):
         """すべてのファイルを削除"""
-        self.file_list.clear()
+        self.files.clear()
         self.file_listbox.delete(0, tk.END)
     
     def _open_settings(self):
@@ -329,97 +309,91 @@ class MainWindow:
         SettingsWindow(self.root, self.config_manager)
     
     def _open_history(self):
-        """履歴画面を開く"""
+        """履歴を表示"""
         # 履歴ウィンドウを作成
         history_window = tk.Toplevel(self.root)
         history_window.title("処理履歴")
-        history_window.geometry("600x400")
+        history_window.geometry("700x500")
         history_window.transient(self.root)
         history_window.grab_set()
         history_window.configure(bg=COLORS["bg_primary"])
         
         # 履歴リストの作成
-        history_frame = ttk.Frame(history_window, padding=15, style="Modern.TFrame")
+        history_frame = ttk.Frame(history_window, padding=10, style="TFrame")
         history_frame.pack(fill=tk.BOTH, expand=True)
         
-        # 履歴テーブルの作成
-        columns = ("日時", "ファイル", "出力")
+        # ツリービューの作成
+        columns = ("file", "output", "timestamp")
         history_tree = ttk.Treeview(history_frame, columns=columns, show="headings")
         
-        # 列の設定
-        history_tree.heading("日時", text="日時")
-        history_tree.heading("ファイル", text="ファイル")
-        history_tree.heading("出力", text="出力")
+        # カラム設定
+        history_tree.heading("file", text="元ファイル")
+        history_tree.heading("output", text="出力ファイル")
+        history_tree.heading("timestamp", text="処理日時")
         
-        history_tree.column("日時", width=150)
-        history_tree.column("ファイル", width=200)
-        history_tree.column("出力", width=200)
+        history_tree.column("file", width=300)
+        history_tree.column("output", width=300)
+        history_tree.column("timestamp", width=150)
+        
+        # 履歴データの取得と表示
+        history_data = self.config_manager.get_history()
+        for i, item in enumerate(history_data):
+            values = (
+                os.path.basename(item.get("file", "")),
+                item.get("output", ""),
+                item.get("timestamp", "")
+            )
+            history_tree.insert("", tk.END, values=values, tags=('evenrow' if i % 2 == 0 else 'oddrow',))
         
         # ツリービューのスタイル設定
         history_tree.configure(
             background=COLORS["bg_secondary"],
             foreground=COLORS["text_primary"],
-            selectbackground=COLORS["accent_primary"],
+            selectbackground=COLORS["accent"],
             selectforeground=COLORS["text_light"]
         )
         history_tree.tag_configure("evenrow", background=COLORS["bg_secondary"])
-        history_tree.tag_configure("oddrow", background="#F0F0F5")
+        history_tree.tag_configure("oddrow", background="#F6F6F6")
         
         history_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
         # スクロールバーの作成
         scrollbar = ttk.Scrollbar(history_frame, orient=tk.VERTICAL, command=history_tree.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        history_tree.config(yscrollcommand=scrollbar.set)
-        
-        # 履歴データの取得
-        history = self.config_manager.get_history()
-        
-        # 履歴データの表示
-        for i, entry in enumerate(reversed(history)):
-            timestamp = entry.get("timestamp", "")
-            file_path = entry.get("file", "")
-            output_path = entry.get("output", "")
-            
-            # ISO形式の日時を読みやすい形式に変換
-            try:
-                dt = datetime.datetime.fromisoformat(timestamp)
-                timestamp = dt.strftime("%Y-%m-%d %H:%M:%S")
-            except:
-                pass
-            
-            # ファイル名のみを表示
-            file_name = os.path.basename(file_path)
-            output_name = os.path.basename(output_path)
-            
-            # 交互の行に異なるスタイルを適用
-            tag = "evenrow" if i % 2 == 0 else "oddrow"
-            history_tree.insert("", tk.END, values=(timestamp, file_name, output_name), tags=(tag,))
+        history_tree.configure(yscrollcommand=scrollbar.set)
         
         # ボタンフレームの作成
-        button_frame = ttk.Frame(history_window, padding=5, style="Modern.TFrame")
+        button_frame = ttk.Frame(history_window, padding=5, style="TFrame")
         button_frame.pack(fill=tk.X, padx=5, pady=5)
         
         # 閉じるボタン
-        close_button = ttk.Button(
+        close_button = tk.Button(
             button_frame, 
             text="閉じる", 
-            command=history_window.destroy, 
-            style="Modern.TButton"
+            command=history_window.destroy,
+            bg=COLORS["bg_primary"],
+            fg=COLORS["text_primary"],
+            font=("Yu Gothic UI", 10),
+            relief="solid",
+            borderwidth=1,
+            padx=10,
+            pady=3,
+            activebackground=COLORS["bg_secondary"],
+            activeforeground=COLORS["text_primary"]
         )
         close_button.pack(side=tk.RIGHT, padx=5, pady=5)
     
     def _start_transcription(self):
         """文字起こし処理を開始"""
-        if not self.file_list:
+        if not self.files:
             messagebox.showwarning("警告", "処理対象ファイルが選択されていません。")
             return
         
-        if self.processing:
+        if self.is_processing:
             return
         
         # 処理中フラグを設定
-        self.processing = True
+        self.is_processing = True
         
         # ボタンの状態を更新
         self.start_button.config(state=tk.DISABLED)
@@ -436,18 +410,18 @@ class MainWindow:
         # 処理スレッドを開始
         self.current_task = threading.Thread(
             target=self._process_files,
-            args=(self.file_list.copy(), model, language, output_dir)
+            args=(self.files.copy(), model, language, output_dir)
         )
         self.current_task.daemon = True
         self.current_task.start()
     
     def _cancel_transcription(self):
         """文字起こし処理をキャンセル"""
-        if not self.processing:
+        if not self.is_processing:
             return
         
         # 処理中フラグを解除
-        self.processing = False
+        self.is_processing = False
         
         # ステータスを更新
         self.status_label.config(text="処理をキャンセルしました")
@@ -475,7 +449,7 @@ class MainWindow:
             
             # ファイルごとに処理
             for i, file_path in enumerate(file_list):
-                if not self.processing:
+                if not self.is_processing:
                     # 処理が中断された場合
                     break
                 
@@ -538,12 +512,17 @@ class MainWindow:
                     messagebox.showerror("処理エラー", f"ファイル {file_name} の処理中にエラーが発生しました:\n{str(e)}")
             
             # 全ての処理が完了
-            if self.processing:
+            if self.is_processing:
                 self._update_progress("すべての処理が完了しました", 100)
                 
                 # 結果画面を表示
                 if results:
-                    self.root.after(500, lambda: ResultWindow(self.root, results))
+                    # 各ファイルごとに結果表示ウィンドウを作成
+                    for result in results:
+                        file_name = result.get("file_name", "不明なファイル")
+                        transcript = result.get("text", "")
+                        self.root.after(500, lambda file=file_name, text=transcript: 
+                                        ResultWindow(self.root, text, file))
         
         except Exception as e:
             # エラーメッセージを表示
@@ -551,7 +530,7 @@ class MainWindow:
         
         finally:
             # 処理状態をリセット
-            self.processing = False
+            self.is_processing = False
             
             # GUIの状態を更新
             self.root.after(0, self._update_buttons_state)
@@ -598,7 +577,7 @@ class MainWindow:
     
     def _update_buttons_state(self):
         """ボタンの状態を更新"""
-        if self.processing:
+        if self.is_processing:
             self.start_button.config(state=tk.DISABLED)
             self.cancel_button.config(state=tk.NORMAL)
         else:
