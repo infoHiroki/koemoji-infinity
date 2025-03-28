@@ -60,9 +60,9 @@ class ResultWindow:
         style = ttk.Style()
         
         # 標準フォント定義
-        heading_font = ("Segoe UI", 11, "bold")
-        normal_font = ("Segoe UI", 10)
-        small_font = ("Segoe UI", 9)
+        heading_font = ("游ゴシック", 11, "bold")
+        normal_font = ("游ゴシック", 10)
+        small_font = ("游ゴシック", 9)
         
         # フレームスタイル
         style.configure("TFrame", background=COLORS["bg_primary"])
@@ -152,7 +152,7 @@ class ResultWindow:
             wrap=tk.NONE,
             yscrollcommand=scrollbar_y.set,
             xscrollcommand=scrollbar_x.set,
-            font=("Segoe UI", 10),
+            font=("游ゴシック", 10),
             bg=COLORS["bg_secondary"],
             fg=COLORS["text_primary"],
             padx=10,
@@ -181,7 +181,7 @@ class ResultWindow:
             command=self.window.destroy,
             bg=COLORS["bg_primary"],
             fg=COLORS["text_primary"],
-            font=("Segoe UI", 10),
+            font=("游ゴシック", 10),
             relief="solid",
             borderwidth=1,
             padx=15,
@@ -198,7 +198,7 @@ class ResultWindow:
             command=self._copy_to_clipboard,
             bg=COLORS["accent"],
             fg=COLORS["text_light"],
-            font=("Segoe UI", 10),
+            font=("游ゴシック", 10),
             relief="flat",
             borderwidth=0,
             padx=15,
@@ -215,7 +215,7 @@ class ResultWindow:
             command=self._save_as,
             bg=COLORS["accent"],
             fg=COLORS["text_light"],
-            font=("Segoe UI", 10),
+            font=("游ゴシック", 10),
             relief="flat",
             borderwidth=0,
             padx=15,
