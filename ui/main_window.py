@@ -327,15 +327,15 @@ class MainWindow:
             image=self.images["start"],
             compound=tk.LEFT,  # 画像を左に配置
             command=self._start_transcription,
-            bg=COLORS["success"],
-            fg=COLORS["text_light"],
+            bg=COLORS["bg_primary"],
+            fg=COLORS["success"],
             font=("Segoe UI", 11, "bold"),
             relief="flat",
             borderwidth=0,
             padx=12,
             pady=6,
-            activebackground=COLORS["success_hover"],
-            activeforeground=COLORS["text_light"],
+            activebackground=COLORS["bg_secondary"],
+            activeforeground=COLORS["success"],
             highlightthickness=0
         )
         self.start_button.pack(side=tk.RIGHT, padx=5)
@@ -347,15 +347,15 @@ class MainWindow:
             image=self.images["cancel"],
             compound=tk.LEFT,  # 画像を左に配置
             command=self._cancel_transcription,
-            bg=COLORS["error"],
-            fg=COLORS["text_light"],
+            bg=COLORS["bg_primary"],
+            fg=COLORS["error"],
             font=("Segoe UI", 11, "bold"),
             relief="flat",
             borderwidth=0,
             padx=10,
             pady=6,
-            activebackground=COLORS["error_hover"],
-            activeforeground=COLORS["text_light"],
+            activebackground=COLORS["bg_secondary"],
+            activeforeground=COLORS["error"],
             state=tk.DISABLED,
             highlightthickness=0
         )
