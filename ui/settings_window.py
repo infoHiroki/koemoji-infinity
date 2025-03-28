@@ -41,7 +41,7 @@ class SettingsWindow:
         
         # 設定ウィンドウを作成
         self.window = tk.Toplevel(parent)
-        self.window.title("設定")
+        self.window.title("コエモジ∞ - 設定")
         self.window.geometry("520x700")
         self.window.minsize(450, 700)
         self.window.transient(parent)
