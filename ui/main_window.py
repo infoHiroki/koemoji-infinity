@@ -392,15 +392,13 @@ class MainWindow:
         self.cancel_button = tk.Button(
             control_frame, 
             text="キャンセル", 
-            image=self.images["cancel"],
-            compound=tk.LEFT,
             command=self._cancel_transcription,
             bg=COLORS["error"],
             fg=COLORS["text_light"],
             font=("Yu Gothic", 11, "bold"),
             relief="raised",
             borderwidth=1,
-            padx=10,
+            padx=15,  # 左側の余白を増やして調整
             pady=6,
             activebackground=COLORS["error_hover"],
             activeforeground=COLORS["text_light"],
