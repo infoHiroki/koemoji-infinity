@@ -94,9 +94,40 @@ class MainWindow:
         
         try:
             # ロゴ画像の読み込み
-            logo_img = Image.open(os.path.join("resources", "koemoji-infinity-logo-48x48 px.png"))
-            logo_img = logo_img.convert("RGBA")
-            self.images["logo"] = ImageTk.PhotoImage(logo_img)
+            logo_path = os.path.join("resources", "koemoji-infinity-logo-48x48 px.png")
+            try:
+                if os.path.exists(logo_path):
+                    logo_img = Image.open(logo_path)
+                    logo_img = logo_img.convert("RGBA")
+                    self.images["logo"] = ImageTk.PhotoImage(logo_img)
+                    print(f"MainWindow: ロゴ画像を読み込みました: {logo_path}")
+                else:
+                    # 代替ロゴの試行
+                    alt_logo_path = os.path.join("resources", "koemoji-infinity-logo.png")
+                    if os.path.exists(alt_logo_path):
+                        logo_img = Image.open(alt_logo_path)
+                        logo_img = logo_img.convert("RGBA")
+                        # 適切なサイズにリサイズ
+                        logo_img = logo_img.resize((48, 48), Image.LANCZOS)
+                        self.images["logo"] = ImageTk.PhotoImage(logo_img)
+                        print(f"MainWindow: 代替ロゴ画像を読み込みました: {alt_logo_path}")
+                    else:
+                        print("MainWindow: ロゴ画像が見つかりませんでした")
+            except Exception as e:
+                print(f"MainWindow: ロゴ画像の読み込みに失敗しました: {e}")
+                # 透過ロゴを試行
+                try:
+                    touka_logo_path = os.path.join("resources", "koemoji-infinity-logo-touka.png")
+                    if os.path.exists(touka_logo_path):
+                        logo_img = Image.open(touka_logo_path)
+                        logo_img = logo_img.convert("RGBA")
+                        # 適切なサイズにリサイズ
+                        logo_img = logo_img.resize((48, 48), Image.LANCZOS)
+                        self.images["logo"] = ImageTk.PhotoImage(logo_img)
+                        print(f"MainWindow: 透過ロゴ画像を使用します: {touka_logo_path}")
+                except Exception as e2:
+                    print(f"MainWindow: 代替ロゴの読み込みにも失敗しました: {e2}")
+                    self.images["logo"] = None
             
             # キャンセルボタン用画像 - モード変換とリサイズを追加
             cancel_img = Image.open(os.path.join("resources", "stop.png"))

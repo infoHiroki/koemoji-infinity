@@ -69,20 +69,54 @@ def main():
     # アプリケーションのアイコン設定（存在する場合）
     try:
         # ロゴ画像をアイコンとして使用（ファビコンをロゴに統一）
-        if os.path.exists("resources/koemoji-infinity-logo-48x48 px.png"):
-            icon_img = Image.open("resources/koemoji-infinity-logo-48x48 px.png")
+        logo_path = "resources/koemoji-infinity-logo-48x48 px.png"
+        if os.path.exists(logo_path):
+            try:
+                icon_img = Image.open(logo_path)
+                icon_photo = ImageTk.PhotoImage(icon_img)
+                root.iconphoto(True, icon_photo)
+                # サブウィンドウでアイコンを再利用するためにプロパティとして保存
+                root.iconphoto_master = icon_photo
+                print(f"アイコンが正常に設定されました: {logo_path}")
+            except Exception as e:
+                print(f"ロゴ画像の読み込みに失敗しました（詳細）: {e}")
+                # ファイル名にスペースがある場合の代替処理
+                try:
+                    # 代替ロゴを使用
+                    alt_logo_path = "resources/koemoji-infinity-logo.png"
+                    if os.path.exists(alt_logo_path):
+                        icon_img = Image.open(alt_logo_path)
+                        # 適切なサイズにリサイズ
+                        icon_img = icon_img.resize((48, 48), Image.LANCZOS)
+                        icon_photo = ImageTk.PhotoImage(icon_img)
+                        root.iconphoto(True, icon_photo)
+                        root.iconphoto_master = icon_photo
+                        print(f"代替アイコンを設定しました: {alt_logo_path}")
+                except Exception as e2:
+                    print(f"代替ロゴの読み込みにも失敗しました: {e2}")
+        elif os.path.exists("resources/koemoji-infinity-logo.png"):
+            icon_img = Image.open("resources/koemoji-infinity-logo.png")
+            # 適切なサイズにリサイズ
+            icon_img = icon_img.resize((48, 48), Image.LANCZOS)
             icon_photo = ImageTk.PhotoImage(icon_img)
             root.iconphoto(True, icon_photo)
             # サブウィンドウでアイコンを再利用するためにプロパティとして保存
             root.iconphoto_master = icon_photo
-        elif os.path.exists("resources/koemoji-infinity-icon.png"):
-            icon_img = Image.open("resources/koemoji-infinity-icon.png")
+            print("通常ロゴ画像をアイコンとして使用します")
+        elif os.path.exists("resources/koemoji-infinity-logo-touka.png"):
+            icon_img = Image.open("resources/koemoji-infinity-logo-touka.png")
+            # 適切なサイズにリサイズ
+            icon_img = icon_img.resize((48, 48), Image.LANCZOS)
             icon_photo = ImageTk.PhotoImage(icon_img)
             root.iconphoto(True, icon_photo)
             # サブウィンドウでアイコンを再利用するためにプロパティとして保存
             root.iconphoto_master = icon_photo
+            print("透過ロゴ画像をアイコンとして使用します")
         elif os.path.exists("resources/icon.ico"):
             root.iconbitmap("resources/icon.ico")
+            print("アイコンファイルを使用します")
+        else:
+            print("アイコンファイルが見つかりませんでした")
     except Exception as e:
         print(f"アイコンの読み込みに失敗しました: {e}")
     
