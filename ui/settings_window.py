@@ -42,8 +42,8 @@ class SettingsWindow:
         # 設定ウィンドウを作成
         self.window = tk.Toplevel(parent)
         self.window.title("コエモジ∞ - 設定")
-        self.window.geometry("520x700")
-        self.window.minsize(450, 700)
+        self.window.geometry("520x550")  # 高さを小さくする
+        self.window.minsize(450, 550)    # 最小サイズも調整
         self.window.transient(parent)
         self.window.grab_set()
         self.window.configure(bg=COLORS["bg_primary"])
@@ -71,9 +71,9 @@ class SettingsWindow:
         style = ttk.Style()
         
         # 標準フォント定義
-        heading_font = ("游ゴシック", 11, "bold")
-        normal_font = ("游ゴシック", 10)
-        small_font = ("游ゴシック", 9)
+        heading_font = ("游ゴシック", 13, "bold")  # フォントサイズを大きく
+        normal_font = ("游ゴシック", 12)          # フォントサイズを大きく
+        small_font = ("游ゴシック", 11)          # フォントサイズを大きく
         
         # フレームのスタイル
         style.configure("TFrame", background=COLORS["bg_primary"])
@@ -84,7 +84,7 @@ class SettingsWindow:
         style.configure("Header.TLabel", background=COLORS["bg_primary"], foreground=COLORS["text_primary"], font=heading_font)
         style.configure("Card.TLabel", background=COLORS["bg_secondary"], foreground=COLORS["text_primary"], font=normal_font)
         style.configure("CardHeader.TLabel", background=COLORS["bg_secondary"], foreground=COLORS["text_primary"], font=heading_font)
-        style.configure("Description.TLabel", background=COLORS["bg_secondary"], foreground=COLORS["text_secondary"], font=small_font)
+        style.configure("Description.TLabel", background=COLORS["bg_primary"], foreground=COLORS["text_secondary"], font=small_font)
 
         # コンボボックスのスタイル
         style.configure("TCombobox", foreground=COLORS["text_primary"], font=normal_font)
@@ -96,6 +96,15 @@ class SettingsWindow:
         
         # セパレータのスタイル
         style.configure("TSeparator", background=COLORS["border"])
+        
+        # タブのスタイル設定
+        style.configure("TNotebook", background=COLORS["bg_primary"], borderwidth=0)
+        style.configure("TNotebook.Tab", background=COLORS["bg_secondary"], foreground=COLORS["text_primary"], 
+                        font=normal_font, padding=[12, 6], borderwidth=0)
+        style.map("TNotebook.Tab", 
+                  background=[("selected", COLORS["accent"])],
+                  foreground=[("selected", COLORS["text_light"])],
+                  expand=[("selected", [1, 1, 1, 0])])
 
     def _create_main_layout(self):
         """メインレイアウトを作成"""
@@ -107,49 +116,36 @@ class SettingsWindow:
         title_label = ttk.Label(self.main_frame, text="アプリケーション設定", style="Header.TLabel")
         title_label.pack(anchor=tk.W, pady=(0, 15))
         
-        # モデル設定カード
-        self._create_model_card()
+        # タブコントロールを作成
+        self.tab_control = ttk.Notebook(self.main_frame)
+        self.tab_control.pack(fill=tk.BOTH, expand=True)
         
-        # 言語設定カード
-        self._create_language_card()
+        # タブページを作成
+        self.model_tab = ttk.Frame(self.tab_control, style="TFrame")
+        self.language_tab = ttk.Frame(self.tab_control, style="TFrame")
+        self.output_tab = ttk.Frame(self.tab_control, style="TFrame")
         
-        # 出力設定カード
-        self._create_output_card()
+        # タブをタブコントロールに追加
+        self.tab_control.add(self.model_tab, text="モデル設定")
+        self.tab_control.add(self.language_tab, text="言語設定")
+        self.tab_control.add(self.output_tab, text="出力設定")
+        
+        # 各タブにコンテンツを作成
+        self._create_model_tab()
+        self._create_language_tab()
+        self._create_output_tab()
         
         # アクションボタン
         self._create_action_buttons()
     
-    def _create_card(self, parent, title):
-        """カードフレームを作成するヘルパーメソッド"""
-        # カード外側フレーム
-        card_outer = ttk.Frame(parent, style="TFrame")
-        card_outer.pack(fill=tk.X, pady=10)
-        
-        # カード内側フレーム
-        card = ttk.Frame(card_outer, style="Card.TFrame")
-        card.pack(fill=tk.X, padx=1, pady=1)
-        card.configure(relief="solid", borderwidth=1)
-        
-        # カードヘッダー
-        header = ttk.Frame(card, style="Card.TFrame")
-        header.pack(fill=tk.X, padx=15, pady=(15, 5))
-        
-        # カードタイトル
-        card_title = ttk.Label(header, text=title, style="CardHeader.TLabel")
-        card_title.pack(anchor=tk.W)
-        
-        # カードコンテンツ領域
-        content = ttk.Frame(card, style="Card.TFrame")
-        content.pack(fill=tk.X, padx=15, pady=(5, 15))
-        
-        return content
-    
-    def _create_model_card(self):
-        """モデル設定カードを作成"""
-        content = self._create_card(self.main_frame, "Whisperモデル設定")
+    def _create_model_tab(self):
+        """モデル設定タブの内容を作成"""
+        # コンテンツフレーム
+        content = ttk.Frame(self.model_tab, style="TFrame")
+        content.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
         
         # モデルサイズ選択
-        model_label = ttk.Label(content, text="モデルサイズ:", style="Card.TLabel")
+        model_label = ttk.Label(content, text="モデルサイズ:", style="TLabel")
         model_label.pack(anchor=tk.W, pady=(0, 5))
         
         # モデルサイズ選択コンボボックス
@@ -172,12 +168,14 @@ class SettingsWindow:
         # モデル選択変更時のイベント設定
         model_combo.bind("<<ComboboxSelected>>", self._update_model_description)
     
-    def _create_language_card(self):
-        """言語設定カードを作成"""
-        content = self._create_card(self.main_frame, "言語設定")
+    def _create_language_tab(self):
+        """言語設定タブの内容を作成"""
+        # コンテンツフレーム
+        content = ttk.Frame(self.language_tab, style="TFrame")
+        content.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
         
         # 言語選択
-        lang_label = ttk.Label(content, text="文字起こしの言語:", style="Card.TLabel")
+        lang_label = ttk.Label(content, text="文字起こしの言語:", style="TLabel")
         lang_label.pack(anchor=tk.W, pady=(0, 5))
         
         # 言語選択コンボボックス
@@ -212,16 +210,18 @@ class SettingsWindow:
         )
         lang_desc.pack(fill=tk.X, pady=(5, 0))
     
-    def _create_output_card(self):
-        """出力設定カードを作成"""
-        content = self._create_card(self.main_frame, "出力設定")
+    def _create_output_tab(self):
+        """出力設定タブの内容を作成"""
+        # コンテンツフレーム
+        content = ttk.Frame(self.output_tab, style="TFrame")
+        content.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
         
         # 出力ディレクトリ
-        output_label = ttk.Label(content, text="文字起こし結果の出力先:", style="Card.TLabel")
+        output_label = ttk.Label(content, text="文字起こし結果の出力先:", style="TLabel")
         output_label.pack(anchor=tk.W, pady=(0, 5))
         
         # 出力ディレクトリ選択エリア
-        dir_frame = ttk.Frame(content, style="Card.TFrame")
+        dir_frame = ttk.Frame(content, style="TFrame")
         dir_frame.pack(fill=tk.X, pady=2)
         
         # 出力ディレクトリパス
@@ -316,7 +316,7 @@ class SettingsWindow:
         """ウィンドウを画面中央に配置"""
         # ウィンドウのサイズを取得
         window_width = 520
-        window_height = 700
+        window_height = 550  # 高さを小さく変更
         
         # 親ウィンドウの位置とサイズを取得
         parent_x = self.parent.winfo_rootx()
