@@ -98,10 +98,11 @@ class MainWindow:
             
             # キャンセルボタン用画像 - モード変換とリサイズを追加
             cancel_img = Image.open(os.path.join("resources", "stop.png"))
-            cancel_img = cancel_img.convert("RGBA")
+            # グレースケールに変換してから、RGBAに変換することで透明度の問題を解決
+            cancel_img = cancel_img.convert("L").convert("RGBA")
             # キャンセル画像のサイズを確認してリサイズ
             if cancel_img.width != 24 or cancel_img.height != 24:
-                cancel_img = cancel_img.resize((24, 24), Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS)
+                cancel_img = cancel_img.resize((24, 24), Image.LANCZOS)
             self.images["cancel"] = ImageTk.PhotoImage(cancel_img)
             
             # 開始ボタン用画像 - モード変換とリサイズを追加
@@ -375,19 +376,19 @@ class MainWindow:
             image=self.images["cancel"],
             compound=tk.LEFT,  # 画像を左に配置
             command=self._cancel_transcription,
-            bg="#F2F2F2",  # より明るい背景色に変更
-            fg="#212121",  # より濃い文字色
+            bg="#F44336",  # エラー色（赤）を使用
+            fg=COLORS["text_light"],  # 白テキスト
             font=("Yu Gothic", 11, "bold"),
             relief="raised",
             borderwidth=1,
             padx=10,
             pady=6,
-            activebackground="#D0D0D0",  # ホバー時のグレー
-            activeforeground="#000000",  # ホバー時の黒
+            activebackground=COLORS["error_hover"],  # ホバー時のエラー色
+            activeforeground=COLORS["text_light"],  # ホバー時の白テキスト
             state=tk.DISABLED,
             highlightthickness=0,
             bd=1,  # ボーダー幅を明示的に設定
-            disabledforeground="#555555"  # 無効時のテキスト色を指定
+            disabledforeground="#CCCCCC"  # 無効時のテキスト色を明るめに設定
         )
         self.cancel_button.pack(side=tk.RIGHT, padx=5)
     
@@ -678,8 +679,17 @@ class MainWindow:
         if self.is_processing:
             # 処理中
             self.start_button.config(state=tk.DISABLED)
-            self.cancel_button.config(state=tk.NORMAL, bg="#E57373", fg=COLORS["text_light"])  # 赤系の色に変更し、テキストを白に
+            self.cancel_button.config(
+                state=tk.NORMAL, 
+                bg=COLORS["error"],  # エラー色（赤）
+                fg=COLORS["text_light"]  # 白テキスト
+            )
         else:
             # 待機中
             self.start_button.config(state=tk.NORMAL)
-            self.cancel_button.config(state=tk.DISABLED, bg="#F2F2F2", fg="#212121")  # 元の色に戻す 
+            self.cancel_button.config(
+                state=tk.DISABLED, 
+                bg=COLORS["error"],  # エラー色（待機中も赤のまま）
+                fg=COLORS["text_light"],  # 白テキスト
+                disabledforeground="#CCCCCC"  # 無効時のテキスト色を明るめに設定
+            ) 
