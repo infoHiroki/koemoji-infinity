@@ -282,15 +282,15 @@ class MainWindow:
             control_frame, 
             text=f"{ICONS['cancel']} キャンセル", 
             command=self._cancel_transcription,
-            bg=COLORS["error_dark"],       # 明るい赤色から暗い赤色に変更
-            fg=COLORS["text_light"],       # 白色テキストを維持
-            font=("Segoe UI", 12, "bold"), # フォントサイズを11から12に拡大
+            bg=COLORS["error"],       # 元の赤色に戻す
+            fg=COLORS["text_light"],  # 白色テキスト
+            font=("Segoe UI", 11, "bold"),  # 元のサイズに戻す
             relief="flat",
             borderwidth=0,
             padx=15,
             pady=8,
             activebackground=COLORS["error_hover"],
-            activeforeground=COLORS["text_light"],  # ホバー時も白色テキスト
+            activeforeground=COLORS["text_light"],
             state=tk.DISABLED
         )
         self.cancel_button.pack(side=tk.RIGHT, padx=5)
