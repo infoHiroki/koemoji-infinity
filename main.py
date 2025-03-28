@@ -68,8 +68,14 @@ def main():
     
     # アプリケーションのアイコン設定（存在する場合）
     try:
-        # アイコンの設定
-        if os.path.exists("resources/koemoji-infinity-icon.png"):
+        # ロゴ画像をアイコンとして使用（ファビコンをロゴに統一）
+        if os.path.exists("resources/koemoji-infinity-logo-48x48 px.png"):
+            icon_img = Image.open("resources/koemoji-infinity-logo-48x48 px.png")
+            icon_photo = ImageTk.PhotoImage(icon_img)
+            root.iconphoto(True, icon_photo)
+            # サブウィンドウでアイコンを再利用するためにプロパティとして保存
+            root.iconphoto_master = icon_photo
+        elif os.path.exists("resources/koemoji-infinity-icon.png"):
             icon_img = Image.open("resources/koemoji-infinity-icon.png")
             icon_photo = ImageTk.PhotoImage(icon_img)
             root.iconphoto(True, icon_photo)

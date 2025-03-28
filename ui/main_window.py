@@ -72,9 +72,11 @@ class MainWindow:
         # 画像を読み込む
         self._load_images()
         
-        # ファビコンを設定
+        # ファビコンを設定（ロゴ画像をアイコンとして使用）
         if self.images.get("logo"):
             self.root.iconphoto(True, self.images["logo"])
+            # サブウィンドウでアイコンを再利用するためにプロパティとして保存
+            self.root.iconphoto_master = self.images["logo"]
         
         # スタイルの設定
         self._setup_styles()
