@@ -101,7 +101,7 @@ class MainWindow:
             cancel_img = cancel_img.convert("RGBA")
             # キャンセル画像のサイズを確認してリサイズ
             if cancel_img.width != 24 or cancel_img.height != 24:
-                cancel_img = cancel_img.resize((24, 24), Image.LANCZOS)
+                cancel_img = cancel_img.resize((24, 24), Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS)
             self.images["cancel"] = ImageTk.PhotoImage(cancel_img)
             
             # 開始ボタン用画像 - モード変換とリサイズを追加
@@ -375,18 +375,19 @@ class MainWindow:
             image=self.images["cancel"],
             compound=tk.LEFT,  # 画像を左に配置
             command=self._cancel_transcription,
-            bg="#E0E0E0",  # もっと明確な色（薄いグレー）
+            bg="#F2F2F2",  # より明るい背景色に変更
             fg="#212121",  # より濃い文字色
             font=("Yu Gothic", 11, "bold"),
-            relief="raised",  # フラットから変更
-            borderwidth=1,  # 0から変更
+            relief="raised",
+            borderwidth=1,
             padx=10,
             pady=6,
-            activebackground="#C0C0C0",  # ホバー時のグレー
+            activebackground="#D0D0D0",  # ホバー時のグレー
             activeforeground="#000000",  # ホバー時の黒
             state=tk.DISABLED,
             highlightthickness=0,
-            bd=1  # ボーダー幅を明示的に設定
+            bd=1,  # ボーダー幅を明示的に設定
+            disabledforeground="#555555"  # 無効時のテキスト色を指定
         )
         self.cancel_button.pack(side=tk.RIGHT, padx=5)
     
@@ -677,8 +678,8 @@ class MainWindow:
         if self.is_processing:
             # 処理中
             self.start_button.config(state=tk.DISABLED)
-            self.cancel_button.config(state=tk.NORMAL)
+            self.cancel_button.config(state=tk.NORMAL, bg="#E57373", fg=COLORS["text_light"])  # 赤系の色に変更し、テキストを白に
         else:
             # 待機中
             self.start_button.config(state=tk.NORMAL)
-            self.cancel_button.config(state=tk.DISABLED) 
+            self.cancel_button.config(state=tk.DISABLED, bg="#F2F2F2", fg="#212121")  # 元の色に戻す 
