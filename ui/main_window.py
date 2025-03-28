@@ -92,27 +92,27 @@ class MainWindow:
         
         try:
             # ロゴ画像の読み込み
-            logo_img = Image.open(os.path.join("resources", "koemoji-infinity-logo-48x48 px.png"))
+            logo_img = Image.open(os.path.join("resources", "koemoji-infinity-logo-48x48 px.png")).convert("RGBA")
             self.images["logo"] = ImageTk.PhotoImage(logo_img)
             
-            # キャンセルボタン用画像
-            cancel_img = Image.open(os.path.join("resources", "stop.png"))
+            # キャンセルボタン用画像 - モード変換を追加
+            cancel_img = Image.open(os.path.join("resources", "stop.png")).convert("RGBA")
             self.images["cancel"] = ImageTk.PhotoImage(cancel_img)
             
-            # 開始ボタン用画像
-            start_img = Image.open(os.path.join("resources", "play.png"))
+            # 開始ボタン用画像 - モード変換を追加
+            start_img = Image.open(os.path.join("resources", "play.png")).convert("RGBA")
             self.images["start"] = ImageTk.PhotoImage(start_img)
             
-            # 追加ボタン用画像
-            add_img = Image.open(os.path.join("resources", "plus.png"))
+            # 追加ボタン用画像 - モード変換を追加
+            add_img = Image.open(os.path.join("resources", "plus.png")).convert("RGBA")
             self.images["add"] = ImageTk.PhotoImage(add_img)
             
-            # 設定ボタン用画像
-            settings_img = Image.open(os.path.join("resources", "settings.png"))
+            # 設定ボタン用画像 - モード変換を追加
+            settings_img = Image.open(os.path.join("resources", "settings.png")).convert("RGBA")
             self.images["settings"] = ImageTk.PhotoImage(settings_img)
             
-            # 削除ボタン用画像
-            delete_img = Image.open(os.path.join("resources", "cancel.png"))
+            # 削除ボタン用画像 - モード変換を追加
+            delete_img = Image.open(os.path.join("resources", "cancel.png")).convert("RGBA")
             self.images["delete"] = ImageTk.PhotoImage(delete_img)
         
         except Exception as e:
@@ -331,15 +331,15 @@ class MainWindow:
             image=self.images["start"],
             compound=tk.LEFT,  # 画像を左に配置
             command=self._start_transcription,
-            bg=COLORS["bg_primary"],
-            fg=COLORS["success"],
+            bg=COLORS["success"],
+            fg=COLORS["text_light"],
             font=("Yu Gothic", 11, "bold"),
-            relief="flat",
-            borderwidth=0,
+            relief="raised",  # フラットから変更
+            borderwidth=1,  # 0から変更
             padx=12,
             pady=6,
-            activebackground=COLORS["bg_secondary"],
-            activeforeground=COLORS["success"],
+            activebackground=COLORS["success_hover"],
+            activeforeground=COLORS["text_light"],
             highlightthickness=0
         )
         self.start_button.pack(side=tk.RIGHT, padx=5)
@@ -351,15 +351,15 @@ class MainWindow:
             image=self.images["cancel"],
             compound=tk.LEFT,  # 画像を左に配置
             command=self._cancel_transcription,
-            bg=COLORS["bg_primary"],
-            fg=COLORS["error"],
+            bg=COLORS["error"],
+            fg=COLORS["text_light"],
             font=("Yu Gothic", 11, "bold"),
-            relief="flat",
-            borderwidth=0,
+            relief="raised",  # フラットから変更
+            borderwidth=1,  # 0から変更
             padx=10,
             pady=6,
-            activebackground=COLORS["bg_secondary"],
-            activeforeground=COLORS["error"],
+            activebackground=COLORS["error_hover"],
+            activeforeground=COLORS["text_light"],
             state=tk.DISABLED,
             highlightthickness=0
         )
