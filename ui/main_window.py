@@ -172,9 +172,9 @@ class MainWindow:
         style = ttk.Style()
         
         # 標準フォント定義
-        heading_font = ("Yu Gothic", 11, "bold")
-        normal_font = ("Yu Gothic", 10)
-        small_font = ("Yu Gothic", 9)
+        heading_font = ("游ゴシック", 11, "bold")
+        normal_font = ("游ゴシック", 10)
+        small_font = ("游ゴシック", 9)
         
         # フレームのスタイル
         style.configure("TFrame", background=COLORS["bg_primary"])
@@ -289,7 +289,7 @@ class MainWindow:
             fg=COLORS["text_primary"],
             selectbackground=COLORS["accent"],
             selectforeground=COLORS["text_light"],
-            font=("Yu Gothic", 10),
+            font=("游ゴシック", 10),
             borderwidth=0,
             relief="flat",
             highlightthickness=0
@@ -314,7 +314,7 @@ class MainWindow:
             command=self._add_files,
             bg=COLORS["accent"],
             fg=COLORS["text_light"],
-            font=("Yu Gothic", 10),
+            font=("游ゴシック", 10),
             relief="flat",
             borderwidth=0,
             padx=8,
@@ -333,7 +333,7 @@ class MainWindow:
             command=self._remove_files,
             bg=COLORS["bg_secondary"],
             fg=COLORS["text_primary"],
-            font=("Yu Gothic", 10),
+            font=("游ゴシック", 10),
             relief="flat",
             borderwidth=0,
             padx=8,
@@ -352,7 +352,7 @@ class MainWindow:
             command=self._clear_files,
             bg=COLORS["bg_secondary"],
             fg=COLORS["text_primary"],
-            font=("Yu Gothic", 10),
+            font=("游ゴシック", 10),
             relief="flat",
             borderwidth=0,
             padx=8,
@@ -376,7 +376,7 @@ class MainWindow:
             command=self._start_transcription,
             bg=COLORS["success"],
             fg=COLORS["text_light"],
-            font=("Yu Gothic", 11, "bold"),
+            font=("游ゴシック", 11, "bold"),
             relief="raised",
             borderwidth=1,
             padx=12,
@@ -395,7 +395,7 @@ class MainWindow:
             command=self._cancel_transcription,
             bg=COLORS["error"],
             fg=COLORS["text_light"],
-            font=("Yu Gothic", 11, "bold"),
+            font=("游ゴシック", 11, "bold"),
             relief="raised",
             borderwidth=1,
             padx=15,  # 左側の余白を増やして調整
