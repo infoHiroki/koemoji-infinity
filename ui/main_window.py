@@ -92,28 +92,51 @@ class MainWindow:
         
         try:
             # ロゴ画像の読み込み
-            logo_img = Image.open(os.path.join("resources", "koemoji-infinity-logo-48x48 px.png")).convert("RGBA")
+            logo_img = Image.open(os.path.join("resources", "koemoji-infinity-logo-48x48 px.png"))
+            logo_img = logo_img.convert("RGBA")
             self.images["logo"] = ImageTk.PhotoImage(logo_img)
             
-            # キャンセルボタン用画像 - モード変換を追加
-            cancel_img = Image.open(os.path.join("resources", "stop.png")).convert("RGBA")
+            # キャンセルボタン用画像 - モード変換とリサイズを追加
+            cancel_img = Image.open(os.path.join("resources", "stop.png"))
+            cancel_img = cancel_img.convert("RGBA")
+            # キャンセル画像のサイズを確認してリサイズ
+            if cancel_img.width != 24 or cancel_img.height != 24:
+                cancel_img = cancel_img.resize((24, 24), Image.LANCZOS)
             self.images["cancel"] = ImageTk.PhotoImage(cancel_img)
             
-            # 開始ボタン用画像 - モード変換を追加
-            start_img = Image.open(os.path.join("resources", "play.png")).convert("RGBA")
+            # 開始ボタン用画像 - モード変換とリサイズを追加
+            start_img = Image.open(os.path.join("resources", "play.png"))
+            start_img = start_img.convert("RGBA")
+            # 開始画像のサイズを確認してリサイズ
+            if start_img.width != 24 or start_img.height != 24:
+                start_img = start_img.resize((24, 24), Image.LANCZOS)
             self.images["start"] = ImageTk.PhotoImage(start_img)
             
-            # 追加ボタン用画像 - モード変換を追加
-            add_img = Image.open(os.path.join("resources", "plus.png")).convert("RGBA")
+            # 追加ボタン用画像 - モード変換とリサイズを追加
+            add_img = Image.open(os.path.join("resources", "plus.png"))
+            add_img = add_img.convert("RGBA")
+            if add_img.width != 24 or add_img.height != 24:
+                add_img = add_img.resize((24, 24), Image.LANCZOS)
             self.images["add"] = ImageTk.PhotoImage(add_img)
             
-            # 設定ボタン用画像 - モード変換を追加
-            settings_img = Image.open(os.path.join("resources", "settings.png")).convert("RGBA")
+            # 設定ボタン用画像 - モード変換とリサイズを追加
+            settings_img = Image.open(os.path.join("resources", "settings.png"))
+            settings_img = settings_img.convert("RGBA")
+            if settings_img.width != 24 or settings_img.height != 24:
+                settings_img = settings_img.resize((24, 24), Image.LANCZOS)
             self.images["settings"] = ImageTk.PhotoImage(settings_img)
             
-            # 削除ボタン用画像 - モード変換を追加
-            delete_img = Image.open(os.path.join("resources", "cancel.png")).convert("RGBA")
+            # 削除ボタン用画像 - モード変換とリサイズを追加
+            delete_img = Image.open(os.path.join("resources", "cancel.png"))
+            delete_img = delete_img.convert("RGBA")
+            if delete_img.width != 24 or delete_img.height != 24:
+                delete_img = delete_img.resize((24, 24), Image.LANCZOS)
             self.images["delete"] = ImageTk.PhotoImage(delete_img)
+            
+            # デバッグ用に画像サイズを出力
+            print(f"ロゴ画像サイズ: {logo_img.width}x{logo_img.height}")
+            print(f"キャンセル画像サイズ: {cancel_img.width}x{cancel_img.height}")
+            print(f"開始画像サイズ: {start_img.width}x{start_img.height}")
         
         except Exception as e:
             print(f"画像の読み込みに失敗しました: {e}")
@@ -340,7 +363,8 @@ class MainWindow:
             pady=6,
             activebackground=COLORS["success_hover"],
             activeforeground=COLORS["text_light"],
-            highlightthickness=0
+            highlightthickness=0,
+            bd=1  # ボーダー幅を明示的に設定
         )
         self.start_button.pack(side=tk.RIGHT, padx=5)
         
@@ -354,14 +378,15 @@ class MainWindow:
             bg=COLORS["bg_secondary"],
             fg=COLORS["text_primary"],
             font=("Yu Gothic", 11, "bold"),
-            relief="flat",
-            borderwidth=0,
+            relief="raised",  # フラットから変更
+            borderwidth=1,  # 0から変更
             padx=10,
             pady=6,
             activebackground=COLORS["border"],
             activeforeground=COLORS["text_primary"],
             state=tk.DISABLED,
-            highlightthickness=0
+            highlightthickness=0,
+            bd=1  # ボーダー幅を明示的に設定
         )
         self.cancel_button.pack(side=tk.RIGHT, padx=5)
     
