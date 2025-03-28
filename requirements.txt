@@ -3,4 +3,5 @@ ffmpeg-python>=0.2.0
 pillow>=9.0.0
 tqdm>=4.64.0
 numpy>=1.20.0
-torch>=1.10.0 
+torch>=1.10.0
+pyinstaller>=6.0.0 
