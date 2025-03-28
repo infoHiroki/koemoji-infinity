@@ -34,6 +34,7 @@ COLORS = {
     "border": "#E0E0E0",            # 標準ボーダー色（薄いグレー）
     "text_dark": "#000000",         # 真っ黒テキスト
     "error_dark": "#C62828",        # より暗い赤色
+    "error_bright": "#FF5252",      # より明るい赤色
 }
 
 # マテリアルデザインのアイコン文字（Unicode）
@@ -281,15 +282,15 @@ class MainWindow:
             control_frame, 
             text=f"{ICONS['cancel']} キャンセル", 
             command=self._cancel_transcription,
-            bg=COLORS["error_dark"],  # より暗い赤色に変更
-            fg=COLORS["text_dark"],   # 真っ黒テキストに変更
+            bg=COLORS["error_bright"],  # より明るい赤色に変更
+            fg=COLORS["text_light"],    # 白色テキストに戻す
             font=("Segoe UI", 11, "bold"),
             relief="flat",
             borderwidth=0,
             padx=15,
             pady=8,
             activebackground=COLORS["error_hover"],
-            activeforeground=COLORS["text_dark"],  # ホバー時も真っ黒テキスト
+            activeforeground=COLORS["text_light"],  # ホバー時も白色テキスト
             state=tk.DISABLED
         )
         self.cancel_button.pack(side=tk.RIGHT, padx=5)
