@@ -69,6 +69,9 @@ class MainWindow:
         self.root.minsize(600, 400)
         self.root.configure(bg=COLORS["bg_primary"])
         
+        # 画像を読み込む
+        self._load_images()
+        
         # スタイルの設定
         self._setup_styles()
         
@@ -78,6 +81,25 @@ class MainWindow:
         # 初期ステータス表示
         self._update_status("ファイルを追加して文字起こしを開始してください")
     
+    def _load_images(self):
+        """アイコン画像を読み込む"""
+        # 画像を保持するための辞書
+        self.images = {}
+        
+        # キャンセルアイコン（既存のアイコンを流用）
+        try:
+            # リソースディレクトリにあるアイコンを使用
+            cancel_img = Image.open(os.path.join("resources", "icon_16x16.png"))
+            self.images["cancel"] = ImageTk.PhotoImage(cancel_img)
+            
+            # スタートアイコン（同じものを利用）
+            start_img = Image.open(os.path.join("resources", "icon_16x16.png"))
+            self.images["start"] = ImageTk.PhotoImage(start_img)
+        except Exception as e:
+            print(f"画像の読み込みに失敗しました: {e}")
+            self.images["cancel"] = None
+            self.images["start"] = None
+
     def _setup_styles(self):
         """スタイルの設定"""
         style = ttk.Style()
@@ -260,10 +282,12 @@ class MainWindow:
         control_frame = ttk.Frame(self.main_frame, style="TFrame")
         control_frame.pack(fill=tk.X, pady=15)
         
-        # 文字起こし開始ボタン
+        # 文字起こし開始ボタン（画像使用）
         self.start_button = tk.Button(
             control_frame, 
-            text=f"{ICONS['start']} 文字起こし開始", 
+            text=" 文字起こし開始", 
+            image=self.images["start"],
+            compound=tk.LEFT,  # 画像を左に配置
             command=self._start_transcription,
             bg=COLORS["success"],
             fg=COLORS["text_light"],
@@ -277,14 +301,16 @@ class MainWindow:
         )
         self.start_button.pack(side=tk.RIGHT, padx=5)
         
-        # キャンセルボタン - マテリアルデザイン適用
+        # キャンセルボタン - 画像使用
         self.cancel_button = tk.Button(
             control_frame, 
-            text=f"{ICONS['cancel']} キャンセル", 
+            text=" キャンセル", 
+            image=self.images["cancel"],
+            compound=tk.LEFT,  # 画像を左に配置
             command=self._cancel_transcription,
-            bg=COLORS["error"],       # 元の赤色に戻す
-            fg=COLORS["text_light"],  # 白色テキスト
-            font=("Segoe UI", 11, "bold"),  # 元のサイズに戻す
+            bg=COLORS["error"],
+            fg=COLORS["text_light"],
+            font=("Segoe UI", 11, "bold"),
             relief="flat",
             borderwidth=0,
             padx=15,
