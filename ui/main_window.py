@@ -92,7 +92,7 @@ class MainWindow:
             self.images["logo"] = ImageTk.PhotoImage(logo_img)
             
             # キャンセルボタン用画像
-            cancel_img = Image.open(os.path.join("resources", "cancel.png"))
+            cancel_img = Image.open(os.path.join("resources", "stop.png"))
             self.images["cancel"] = ImageTk.PhotoImage(cancel_img)
             
             # 開始ボタン用画像
@@ -108,7 +108,7 @@ class MainWindow:
             self.images["settings"] = ImageTk.PhotoImage(settings_img)
             
             # 削除ボタン用画像
-            delete_img = Image.open(os.path.join("resources", "stop.png"))
+            delete_img = Image.open(os.path.join("resources", "cancel.png"))
             self.images["delete"] = ImageTk.PhotoImage(delete_img)
         
         except Exception as e:
