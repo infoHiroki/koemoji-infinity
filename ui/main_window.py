@@ -65,7 +65,7 @@ class MainWindow:
         self.cancel_flag = False  # キャンセルフラグ
         
         # ウィンドウの設定
-        self.root.title("音声・動画文字起こしアプリ")
+        self.root.title("コエモジ∞")
         self.root.minsize(600, 400)
         self.root.configure(bg=COLORS["bg_primary"])
         
@@ -233,10 +233,18 @@ class MainWindow:
         # アプリタイトル
         title_label = ttk.Label(
             logo_title_frame, 
-            text="音声・動画文字起こし", 
+            text="コエモジ∞", 
             style="Header.TLabel"
         )
         title_label.pack(side=tk.LEFT, anchor=tk.W)
+        
+        # サブタイトル
+        subtitle_label = ttk.Label(
+            logo_title_frame, 
+            text="音声・動画文字起こし", 
+            style="TLabel"
+        )
+        subtitle_label.pack(side=tk.LEFT, anchor=tk.W, padx=(10, 0))
         
         # 設定ボタン
         settings_button = tk.Button(
