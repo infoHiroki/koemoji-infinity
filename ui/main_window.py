@@ -86,19 +86,39 @@ class MainWindow:
         # 画像を保持するための辞書
         self.images = {}
         
-        # キャンセルアイコン（既存のアイコンを流用）
         try:
-            # リソースディレクトリにあるアイコンを使用
-            cancel_img = Image.open(os.path.join("resources", "icon_16x16.png"))
+            # ロゴ画像の読み込み
+            logo_img = Image.open(os.path.join("resources", "koemoji-infinity-logo-48x48 px.png"))
+            self.images["logo"] = ImageTk.PhotoImage(logo_img)
+            
+            # キャンセルボタン用画像
+            cancel_img = Image.open(os.path.join("resources", "cancel.png"))
             self.images["cancel"] = ImageTk.PhotoImage(cancel_img)
             
-            # スタートアイコン（同じものを利用）
-            start_img = Image.open(os.path.join("resources", "icon_16x16.png"))
+            # 開始ボタン用画像
+            start_img = Image.open(os.path.join("resources", "play.png"))
             self.images["start"] = ImageTk.PhotoImage(start_img)
+            
+            # 追加ボタン用画像
+            add_img = Image.open(os.path.join("resources", "plus.png"))
+            self.images["add"] = ImageTk.PhotoImage(add_img)
+            
+            # 設定ボタン用画像
+            settings_img = Image.open(os.path.join("resources", "settings.png"))
+            self.images["settings"] = ImageTk.PhotoImage(settings_img)
+            
+            # 削除ボタン用画像
+            delete_img = Image.open(os.path.join("resources", "stop.png"))
+            self.images["delete"] = ImageTk.PhotoImage(delete_img)
+        
         except Exception as e:
             print(f"画像の読み込みに失敗しました: {e}")
+            self.images["logo"] = None
             self.images["cancel"] = None
             self.images["start"] = None
+            self.images["add"] = None
+            self.images["settings"] = None
+            self.images["delete"] = None
 
     def _setup_styles(self):
         """スタイルの設定"""
@@ -150,9 +170,22 @@ class MainWindow:
         header_frame = ttk.Frame(self.main_frame, style="TFrame")
         header_frame.pack(fill=tk.X, pady=(0, 15))
         
+        # ロゴとアプリタイトルを横並びに
+        logo_title_frame = ttk.Frame(header_frame, style="TFrame")
+        logo_title_frame.pack(side=tk.LEFT)
+        
+        # ロゴ画像
+        if self.images.get("logo"):
+            logo_label = ttk.Label(
+                logo_title_frame, 
+                image=self.images["logo"],
+                style="TLabel"
+            )
+            logo_label.pack(side=tk.LEFT, padx=(0, 10))
+        
         # アプリタイトル
         title_label = ttk.Label(
-            header_frame, 
+            logo_title_frame, 
             text="音声・動画文字起こし", 
             style="Header.TLabel"
         )
@@ -161,11 +194,10 @@ class MainWindow:
         # 設定ボタン
         settings_button = tk.Button(
             header_frame, 
-            text=f"{ICONS['settings']} 設定", 
+            image=self.images["settings"],
             command=self._open_settings,
             bg=COLORS["bg_primary"],
             fg=COLORS["text_primary"],
-            font=("Segoe UI", 10),
             relief="flat",
             borderwidth=0,
             padx=8,
@@ -229,7 +261,9 @@ class MainWindow:
         # ファイル追加ボタン
         add_btn = tk.Button(
             file_btn_area, 
-            text=f"{ICONS['add']} ファイル追加", 
+            text="ファイル追加",
+            image=self.images["add"],
+            compound=tk.LEFT,
             command=self._add_files,
             bg=COLORS["accent"],
             fg=COLORS["text_light"],
@@ -246,7 +280,9 @@ class MainWindow:
         # ファイル削除ボタン
         remove_btn = tk.Button(
             file_btn_area, 
-            text=f"{ICONS['delete']} 選択削除", 
+            text="選択削除",
+            image=self.images["delete"],
+            compound=tk.LEFT,
             command=self._remove_files,
             bg=COLORS["bg_secondary"],
             fg=COLORS["text_primary"],
@@ -263,7 +299,9 @@ class MainWindow:
         # 全ファイル削除ボタン
         clear_btn = tk.Button(
             file_btn_area, 
-            text=f"{ICONS['clear']} 全て削除", 
+            text="全て削除",
+            image=self.images["delete"],
+            compound=tk.LEFT,
             command=self._clear_files,
             bg=COLORS["bg_secondary"],
             fg=COLORS["text_primary"],
@@ -285,7 +323,7 @@ class MainWindow:
         # 文字起こし開始ボタン（画像使用）
         self.start_button = tk.Button(
             control_frame, 
-            text=" 文字起こし開始", 
+            text="文字起こし開始", 
             image=self.images["start"],
             compound=tk.LEFT,  # 画像を左に配置
             command=self._start_transcription,
@@ -304,7 +342,7 @@ class MainWindow:
         # キャンセルボタン - 画像使用
         self.cancel_button = tk.Button(
             control_frame, 
-            text=" キャンセル", 
+            text="キャンセル", 
             image=self.images["cancel"],
             compound=tk.LEFT,  # 画像を左に配置
             command=self._cancel_transcription,
