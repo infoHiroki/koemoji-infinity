@@ -65,9 +65,9 @@ class SettingsWindow:
         style = ttk.Style()
         
         # 標準フォント定義
-        heading_font = ("Segoe UI", 11, "bold")
-        normal_font = ("Segoe UI", 10)
-        small_font = ("Segoe UI", 9)
+        heading_font = ("游ゴシック", 11, "bold")
+        normal_font = ("游ゴシック", 10)
+        small_font = ("游ゴシック", 9)
         
         # フレームのスタイル
         style.configure("TFrame", background=COLORS["bg_primary"])
@@ -230,7 +230,7 @@ class SettingsWindow:
             command=self._browse_output_dir,
             bg=COLORS["accent"],
             fg=COLORS["text_light"],
-            font=("Segoe UI", 9),
+            font=("游ゴシック", 9),
             relief="flat",
             borderwidth=0,
             padx=8,
@@ -262,7 +262,7 @@ class SettingsWindow:
             command=self.window.destroy,
             bg=COLORS["bg_primary"],
             fg=COLORS["text_primary"],
-            font=("Segoe UI", 10),
+            font=("游ゴシック", 10),
             relief="solid",
             borderwidth=1,
             padx=10,
@@ -279,7 +279,7 @@ class SettingsWindow:
             command=self._save_settings,
             bg=COLORS["accent"],
             fg=COLORS["text_light"],
-            font=("Segoe UI", 10),
+            font=("游ゴシック", 10),
             relief="flat",
             borderwidth=0,
             padx=15,
