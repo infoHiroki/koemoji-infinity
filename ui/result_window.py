@@ -41,7 +41,7 @@ class ResultWindow:
         """
         # ウィンドウの設定
         self.window = tk.Toplevel(parent)
-        self.window.title(f"文字起こし結果 - {title}")
+        self.window.title(f"コエモジ∞ - 文字起こし結果 - {title}")
         self.window.geometry("700x550")
         self.window.minsize(500, 400)
         self.window.configure(bg=COLORS["bg_primary"])
