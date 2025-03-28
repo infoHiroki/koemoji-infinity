@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-動画文字起こしアプリケーション
+コエモジ∞ - 音声・動画文字起こしアプリケーション
 OpenAI Whisperを使用して動画ファイルから音声を抽出し、自動的に文字起こしを行うデスクトップアプリケーション
 """
 
@@ -45,7 +45,7 @@ def main():
     root = tk.Tk()
     
     # ウィンドウの設定
-    root.title("音声・動画文字起こしアプリ")
+    root.title("コエモジ∞")
     root.geometry("900x650")
     root.configure(bg=COLORS["bg_primary"])
     
@@ -63,15 +63,20 @@ def main():
     root.geometry(f"{window_width}x{window_height}+{center_x}+{center_y}")
     
     # フォントの設定
-    default_font = ("Segoe UI", 10)
+    default_font = ("游ゴシック", 10)
     root.option_add("*Font", default_font)
     
     # アプリケーションのアイコン設定（存在する場合）
     try:
-        if os.path.exists("resources/icon.ico"):
+        # アイコンの設定
+        if os.path.exists("resources/koemoji-infinity-icon.png"):
+            icon_img = Image.open("resources/koemoji-infinity-icon.png")
+            icon_photo = ImageTk.PhotoImage(icon_img)
+            root.iconphoto(True, icon_photo)
+        elif os.path.exists("resources/icon.ico"):
             root.iconbitmap("resources/icon.ico")
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"アイコンの読み込みに失敗しました: {e}")
     
     # メインアプリケーションの作成
     app = MainWindow(root, config_manager)
