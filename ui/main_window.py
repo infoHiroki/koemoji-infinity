@@ -542,7 +542,7 @@ class MainWindow:
         config = self.config_manager.get_config()
         model = config.get("model", "medium")
         language = config.get("language", "")
-        output_dir = config.get("output_directory", "output")
+        output_dir = config.get("output_directory", os.path.join(os.path.expanduser("~/Desktop"), "文字起こしデータ"))
         
         # 出力ディレクトリがなければ作成
         if not os.path.exists(output_dir):

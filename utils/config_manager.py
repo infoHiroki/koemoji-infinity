@@ -47,7 +47,7 @@ class ConfigManager:
             "language": "ja",  # 日本語
             "output_format": "txt",
             "history": [],
-            "output_directory": os.path.expanduser("~/Documents/Transcriptions")
+            "output_directory": os.path.join(os.path.expanduser("~/Desktop"), "文字起こしデータ")
         }
         
         # 設定ファイルのパスを確認
@@ -176,7 +176,7 @@ class ConfigManager:
         Returns:
             str: 出力ディレクトリのパス
         """
-        output_dir = self.config.get("output_directory", os.path.expanduser("~/Documents/Transcriptions"))
+        output_dir = self.config.get("output_directory", os.path.join(os.path.expanduser("~/Desktop"), "文字起こしデータ"))
         
         # ディレクトリが存在しない場合は作成
         if not os.path.exists(output_dir):
