@@ -351,15 +351,15 @@ class MainWindow:
             image=self.images["cancel"],
             compound=tk.LEFT,  # 画像を左に配置
             command=self._cancel_transcription,
-            bg=COLORS["error"],
-            fg=COLORS["text_light"],
+            bg=COLORS["bg_secondary"],
+            fg=COLORS["text_primary"],
             font=("Yu Gothic", 11, "bold"),
-            relief="raised",  # フラットから変更
-            borderwidth=1,  # 0から変更
+            relief="flat",
+            borderwidth=0,
             padx=10,
             pady=6,
-            activebackground=COLORS["error_hover"],
-            activeforeground=COLORS["text_light"],
+            activebackground=COLORS["border"],
+            activeforeground=COLORS["text_primary"],
             state=tk.DISABLED,
             highlightthickness=0
         )
