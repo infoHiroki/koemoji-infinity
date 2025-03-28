@@ -282,9 +282,9 @@ class MainWindow:
             control_frame, 
             text=f"{ICONS['cancel']} キャンセル", 
             command=self._cancel_transcription,
-            bg=COLORS["error_bright"],  # より明るい赤色に変更
-            fg=COLORS["text_light"],    # 白色テキストに戻す
-            font=("Segoe UI", 11, "bold"),
+            bg=COLORS["error_dark"],       # 明るい赤色から暗い赤色に変更
+            fg=COLORS["text_light"],       # 白色テキストを維持
+            font=("Segoe UI", 12, "bold"), # フォントサイズを11から12に拡大
             relief="flat",
             borderwidth=0,
             padx=15,
