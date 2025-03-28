@@ -280,14 +280,14 @@ class MainWindow:
             text=f"{ICONS['cancel']} キャンセル", 
             command=self._cancel_transcription,
             bg=COLORS["error"],
-            fg=COLORS["text_light"],
-            font=("Segoe UI", 11, "bold"),  # 太字に変更してコントラストを向上
+            fg=COLORS["text_primary"],
+            font=("Segoe UI", 11, "bold"),
             relief="flat",
             borderwidth=0,
             padx=15,
             pady=8,
             activebackground=COLORS["error_hover"],
-            activeforeground=COLORS["text_light"],
+            activeforeground=COLORS["text_primary"],
             state=tk.DISABLED
         )
         self.cancel_button.pack(side=tk.RIGHT, padx=5)
