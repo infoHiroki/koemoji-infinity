@@ -174,9 +174,9 @@ class MainWindow:
         style = ttk.Style()
         
         # 標準フォント定義
-        heading_font = ("游ゴシック", 11, "bold")
-        normal_font = ("游ゴシック", 10)
-        small_font = ("游ゴシック", 9)
+        heading_font = ("游ゴシック", 13, "bold")  # 11から13へ
+        normal_font = ("游ゴシック", 12)  # 10から12へ
+        small_font = ("游ゴシック", 11)  # 9から11へ
         
         # フレームのスタイル
         style.configure("TFrame", background=COLORS["bg_primary"])
@@ -232,11 +232,11 @@ class MainWindow:
             )
             logo_label.pack(side=tk.LEFT, padx=(0, 10))
         
-        # アプリタイトル
+        # アプリタイトル - 特に大きくして強調
         title_label = ttk.Label(
             logo_title_frame, 
             text="コエモジ∞", 
-            style="Header.TLabel"
+            font=("游ゴシック", 16, "bold")  # カスタムフォントで特に大きく
         )
         title_label.pack(side=tk.LEFT, anchor=tk.W)
         
@@ -244,7 +244,7 @@ class MainWindow:
         subtitle_label = ttk.Label(
             logo_title_frame, 
             text="音声・動画文字起こし", 
-            style="TLabel"
+            font=("游ゴシック", 13)  # カスタムフォントで大きめに
         )
         subtitle_label.pack(side=tk.LEFT, anchor=tk.W, padx=(10, 0))
         
@@ -299,7 +299,7 @@ class MainWindow:
             fg=COLORS["text_primary"],
             selectbackground=COLORS["accent"],
             selectforeground=COLORS["text_light"],
-            font=("游ゴシック", 10),
+            font=("游ゴシック", 12),  # 10から12へ
             borderwidth=0,
             relief="flat",
             highlightthickness=0
@@ -324,7 +324,7 @@ class MainWindow:
             command=self._add_files,
             bg=COLORS["accent"],
             fg=COLORS["text_light"],
-            font=("游ゴシック", 10),
+            font=("游ゴシック", 12),  # 10から12へ
             relief="flat",
             borderwidth=0,
             padx=8,
@@ -343,7 +343,7 @@ class MainWindow:
             command=self._remove_files,
             bg=COLORS["bg_secondary"],
             fg=COLORS["text_primary"],
-            font=("游ゴシック", 10),
+            font=("游ゴシック", 12),  # 10から12へ
             relief="flat",
             borderwidth=0,
             padx=8,
@@ -362,7 +362,7 @@ class MainWindow:
             command=self._clear_files,
             bg=COLORS["bg_secondary"],
             fg=COLORS["text_primary"],
-            font=("游ゴシック", 10),
+            font=("游ゴシック", 12),  # 10から12へ
             relief="flat",
             borderwidth=0,
             padx=8,
@@ -386,7 +386,7 @@ class MainWindow:
             command=self._start_transcription,
             bg=COLORS["success"],
             fg=COLORS["text_light"],
-            font=("游ゴシック", 11, "bold"),
+            font=("游ゴシック", 13, "bold"),  # 11から13へ
             relief="raised",
             borderwidth=1,
             padx=12,
@@ -405,7 +405,7 @@ class MainWindow:
             command=self._cancel_transcription,
             bg=COLORS["error"],
             fg=COLORS["text_light"],
-            font=("游ゴシック", 11, "bold"),
+            font=("游ゴシック", 13, "bold"),  # 11から13へ
             relief="raised",
             borderwidth=1,
             padx=15,  # 左側の余白を増やして調整

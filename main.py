@@ -63,7 +63,7 @@ def main():
     root.geometry(f"{window_width}x{window_height}+{center_x}+{center_y}")
     
     # フォントの設定
-    default_font = ("游ゴシック", 10)
+    default_font = ("游ゴシック", 12)
     root.option_add("*Font", default_font)
     
     # アプリケーションのアイコン設定（存在する場合）
