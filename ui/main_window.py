@@ -24,12 +24,24 @@ COLORS = {
     "accent": "#2196F3",            # アクセント色（青）
     "accent_hover": "#1976D2",      # ホバー時のアクセント色（濃い青）
     "success": "#4CAF50",           # 成功色（緑）
+    "success_hover": "#388E3C",     # ホバー時の成功色（濃い緑）
     "warning": "#FF9800",           # 警告色（オレンジ）
     "error": "#F44336",             # エラー色（赤）
+    "error_hover": "#D32F2F",       # ホバー時のエラー色（濃い赤）
     "text_primary": "#212121",      # 主要テキスト（黒に近いグレー）
     "text_secondary": "#757575",    # 副次テキスト（ミディアムグレー）
     "text_light": "#FFFFFF",        # 明るいテキスト（白）
     "border": "#E0E0E0",            # 標準ボーダー色（薄いグレー）
+}
+
+# マテリアルデザインのアイコン文字（Unicode）
+ICONS = {
+    "settings": "\u2699",           # ⚙ 設定アイコン
+    "add": "\u002B",                # + 追加アイコン
+    "delete": "\u2716",             # ✖ 削除アイコン
+    "clear": "\u2715",              # ✕ クリアアイコン
+    "start": "\u25B6",              # ▶ 開始アイコン
+    "cancel": "\u2715",             # ✕ キャンセルアイコン
 }
 
 class MainWindow:
@@ -124,7 +136,7 @@ class MainWindow:
         # 設定ボタン
         settings_button = tk.Button(
             header_frame, 
-            text="⚙️ 設定", 
+            text=f"{ICONS['settings']} 設定", 
             command=self._open_settings,
             bg=COLORS["bg_primary"],
             fg=COLORS["text_primary"],
@@ -192,7 +204,7 @@ class MainWindow:
         # ファイル追加ボタン
         add_btn = tk.Button(
             file_btn_area, 
-            text="ファイル追加", 
+            text=f"{ICONS['add']} ファイル追加", 
             command=self._add_files,
             bg=COLORS["accent"],
             fg=COLORS["text_light"],
@@ -209,7 +221,7 @@ class MainWindow:
         # ファイル削除ボタン
         remove_btn = tk.Button(
             file_btn_area, 
-            text="選択削除", 
+            text=f"{ICONS['delete']} 選択削除", 
             command=self._remove_files,
             bg=COLORS["bg_secondary"],
             fg=COLORS["text_primary"],
@@ -226,7 +238,7 @@ class MainWindow:
         # 全ファイル削除ボタン
         clear_btn = tk.Button(
             file_btn_area, 
-            text="全て削除", 
+            text=f"{ICONS['clear']} 全て削除", 
             command=self._clear_files,
             bg=COLORS["bg_secondary"],
             fg=COLORS["text_primary"],
@@ -248,7 +260,7 @@ class MainWindow:
         # 文字起こし開始ボタン
         self.start_button = tk.Button(
             control_frame, 
-            text="文字起こし開始", 
+            text=f"{ICONS['start']} 文字起こし開始", 
             command=self._start_transcription,
             bg=COLORS["success"],
             fg=COLORS["text_light"],
@@ -257,24 +269,24 @@ class MainWindow:
             borderwidth=0,
             padx=20,
             pady=8,
-            activebackground="#388E3C",  # 濃い緑
+            activebackground=COLORS["success_hover"],
             activeforeground=COLORS["text_light"]
         )
         self.start_button.pack(side=tk.RIGHT, padx=5)
         
-        # キャンセルボタン
+        # キャンセルボタン - マテリアルデザイン適用
         self.cancel_button = tk.Button(
             control_frame, 
-            text="キャンセル", 
+            text=f"{ICONS['cancel']} キャンセル", 
             command=self._cancel_transcription,
             bg=COLORS["error"],
             fg=COLORS["text_light"],
-            font=("Segoe UI", 11),
+            font=("Segoe UI", 11, "bold"),  # 太字に変更してコントラストを向上
             relief="flat",
             borderwidth=0,
             padx=15,
             pady=8,
-            activebackground="#D32F2F",  # 濃い赤
+            activebackground=COLORS["error_hover"],
             activeforeground=COLORS["text_light"],
             state=tk.DISABLED
         )
