@@ -98,12 +98,31 @@ class MainWindow:
             
             # キャンセルボタン用画像 - モード変換とリサイズを追加
             cancel_img = Image.open(os.path.join("resources", "stop.png"))
-            # グレースケールに変換してから、RGBAに変換することで透明度の問題を解決
-            cancel_img = cancel_img.convert("L").convert("RGBA")
+            # 元の画像をそのままRGBAに変換し、透明度は保持
+            cancel_img = cancel_img.convert("RGBA")
             # キャンセル画像のサイズを確認してリサイズ
             if cancel_img.width != 24 or cancel_img.height != 24:
                 cancel_img = cancel_img.resize((24, 24), Image.LANCZOS)
             self.images["cancel"] = ImageTk.PhotoImage(cancel_img)
+            
+            # 無効状態用の別バージョンのキャンセルアイコンを作成
+            cancel_disabled_img = Image.open(os.path.join("resources", "stop.png"))
+            cancel_disabled_img = cancel_disabled_img.convert("RGBA")
+            # 画像を明るく加工して無効状態を表現（ピクセルごとに明るさを調整）
+            data = cancel_disabled_img.getdata()
+            new_data = []
+            for item in data:
+                # RGBを明るくし、アルファは保持
+                new_data.append((
+                    min(255, item[0] + 100),
+                    min(255, item[1] + 100),
+                    min(255, item[2] + 100),
+                    item[3]
+                ))
+            cancel_disabled_img.putdata(new_data)
+            if cancel_disabled_img.width != 24 or cancel_disabled_img.height != 24:
+                cancel_disabled_img = cancel_disabled_img.resize((24, 24), Image.LANCZOS)
+            self.images["cancel_disabled"] = ImageTk.PhotoImage(cancel_disabled_img)
             
             # 開始ボタン用画像 - モード変換とリサイズを追加
             start_img = Image.open(os.path.join("resources", "play.png"))
@@ -358,39 +377,38 @@ class MainWindow:
             bg=COLORS["success"],
             fg=COLORS["text_light"],
             font=("Yu Gothic", 11, "bold"),
-            relief="raised",  # フラットから変更
-            borderwidth=1,  # 0から変更
+            relief="raised",
+            borderwidth=1,
             padx=12,
             pady=6,
             activebackground=COLORS["success_hover"],
             activeforeground=COLORS["text_light"],
             highlightthickness=0,
-            bd=1  # ボーダー幅を明示的に設定
+            bd=1
         )
         self.start_button.pack(side=tk.RIGHT, padx=5)
         
-        # キャンセルボタン - 画像使用
+        # キャンセルボタン - 最初は非表示
         self.cancel_button = tk.Button(
             control_frame, 
             text="キャンセル", 
             image=self.images["cancel"],
-            compound=tk.LEFT,  # 画像を左に配置
+            compound=tk.LEFT,
             command=self._cancel_transcription,
-            bg="#F44336",  # エラー色（赤）を使用
-            fg=COLORS["text_light"],  # 白テキスト
+            bg=COLORS["error"],
+            fg=COLORS["text_light"],
             font=("Yu Gothic", 11, "bold"),
             relief="raised",
             borderwidth=1,
             padx=10,
             pady=6,
-            activebackground=COLORS["error_hover"],  # ホバー時のエラー色
-            activeforeground=COLORS["text_light"],  # ホバー時の白テキスト
-            state=tk.DISABLED,
+            activebackground=COLORS["error_hover"],
+            activeforeground=COLORS["text_light"],
             highlightthickness=0,
-            bd=1,  # ボーダー幅を明示的に設定
-            disabledforeground="#CCCCCC"  # 無効時のテキスト色を明るめに設定
+            bd=1
         )
-        self.cancel_button.pack(side=tk.RIGHT, padx=5)
+        # 初期状態では非表示
+        # self.cancel_button.pack(side=tk.RIGHT, padx=5)
     
     def _create_status_area(self):
         """ステータスエリアを作成"""
@@ -677,19 +695,10 @@ class MainWindow:
     def _update_buttons_state(self):
         """ボタンの状態を更新"""
         if self.is_processing:
-            # 処理中
+            # 処理中 - 開始ボタンを無効化し、キャンセルボタンを表示
             self.start_button.config(state=tk.DISABLED)
-            self.cancel_button.config(
-                state=tk.NORMAL, 
-                bg=COLORS["error"],  # エラー色（赤）
-                fg=COLORS["text_light"]  # 白テキスト
-            )
+            self.cancel_button.pack(side=tk.RIGHT, padx=5)  # 表示
         else:
-            # 待機中
+            # 待機中 - 開始ボタンを有効化し、キャンセルボタンを非表示
             self.start_button.config(state=tk.NORMAL)
-            self.cancel_button.config(
-                state=tk.DISABLED, 
-                bg=COLORS["error"],  # エラー色（待機中も赤のまま）
-                fg=COLORS["text_light"],  # 白テキスト
-                disabledforeground="#CCCCCC"  # 無効時のテキスト色を明るめに設定
-            ) 
+            self.cancel_button.pack_forget()  # 非表示 
