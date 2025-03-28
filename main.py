@@ -73,6 +73,8 @@ def main():
             icon_img = Image.open("resources/koemoji-infinity-icon.png")
             icon_photo = ImageTk.PhotoImage(icon_img)
             root.iconphoto(True, icon_photo)
+            # サブウィンドウでアイコンを再利用するためにプロパティとして保存
+            root.iconphoto_master = icon_photo
         elif os.path.exists("resources/icon.ico"):
             root.iconbitmap("resources/icon.ico")
     except Exception as e:

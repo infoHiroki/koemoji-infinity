@@ -46,6 +46,12 @@ class ResultWindow:
         self.window.minsize(500, 400)
         self.window.configure(bg=COLORS["bg_primary"])
         
+        # 親ウィンドウと同じアイコンを使用
+        try:
+            self.window.iconphoto(True, parent.iconphoto_master)
+        except Exception:
+            pass
+        
         # ウィンドウを画面中央に配置
         self._center_window(parent)
         
