@@ -200,8 +200,8 @@ class MainWindow:
             fg=COLORS["text_primary"],
             relief="flat",
             borderwidth=0,
-            padx=8,
-            pady=2,
+            padx=4,
+            pady=4,
             activebackground=COLORS["bg_secondary"],
             activeforeground=COLORS["text_primary"]
         )
@@ -216,7 +216,7 @@ class MainWindow:
         # カードのメインフレーム
         card_frame = ttk.Frame(card_outer, style="Card.TFrame")
         card_frame.pack(fill=tk.BOTH, expand=True, padx=1, pady=1)
-        card_frame.configure(relief="solid", borderwidth=1)
+        card_frame.configure(relief="flat", borderwidth=0)
         
         # カードヘッダー
         card_header = ttk.Frame(card_frame, style="Card.TFrame")
@@ -243,8 +243,8 @@ class MainWindow:
             selectbackground=COLORS["accent"],
             selectforeground=COLORS["text_light"],
             font=("Segoe UI", 10),
-            borderwidth=1,
-            relief="solid",
+            borderwidth=0,
+            relief="flat",
             highlightthickness=0
         )
         self.file_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -270,8 +270,8 @@ class MainWindow:
             font=("Segoe UI", 10),
             relief="flat",
             borderwidth=0,
-            padx=12,
-            pady=6,
+            padx=8,
+            pady=4,
             activebackground=COLORS["accent_hover"],
             activeforeground=COLORS["text_light"]
         )
@@ -287,10 +287,10 @@ class MainWindow:
             bg=COLORS["bg_secondary"],
             fg=COLORS["text_primary"],
             font=("Segoe UI", 10),
-            relief="solid",
-            borderwidth=1,
-            padx=12,
-            pady=6,
+            relief="flat",
+            borderwidth=0,
+            padx=8,
+            pady=4,
             activebackground=COLORS["border"],
             activeforeground=COLORS["text_primary"]
         )
@@ -306,10 +306,10 @@ class MainWindow:
             bg=COLORS["bg_secondary"],
             fg=COLORS["text_primary"],
             font=("Segoe UI", 10),
-            relief="solid",
-            borderwidth=1,
-            padx=12,
-            pady=6,
+            relief="flat",
+            borderwidth=0,
+            padx=8,
+            pady=4,
             activebackground=COLORS["border"],
             activeforeground=COLORS["text_primary"]
         )
@@ -332,8 +332,8 @@ class MainWindow:
             font=("Segoe UI", 11, "bold"),
             relief="flat",
             borderwidth=0,
-            padx=20,
-            pady=8,
+            padx=12,
+            pady=6,
             activebackground=COLORS["success_hover"],
             activeforeground=COLORS["text_light"]
         )
@@ -351,8 +351,8 @@ class MainWindow:
             font=("Segoe UI", 11, "bold"),
             relief="flat",
             borderwidth=0,
-            padx=15,
-            pady=8,
+            padx=10,
+            pady=6,
             activebackground=COLORS["error_hover"],
             activeforeground=COLORS["text_light"],
             state=tk.DISABLED
