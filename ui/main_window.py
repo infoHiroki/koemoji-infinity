@@ -129,9 +129,9 @@ class MainWindow:
         style = ttk.Style()
         
         # 標準フォント定義
-        heading_font = ("Segoe UI", 11, "bold")
-        normal_font = ("Segoe UI", 10)
-        small_font = ("Segoe UI", 9)
+        heading_font = ("Yu Gothic", 11, "bold")
+        normal_font = ("Yu Gothic", 10)
+        small_font = ("Yu Gothic", 9)
         
         # フレームのスタイル
         style.configure("TFrame", background=COLORS["bg_primary"])
@@ -246,7 +246,7 @@ class MainWindow:
             fg=COLORS["text_primary"],
             selectbackground=COLORS["accent"],
             selectforeground=COLORS["text_light"],
-            font=("Segoe UI", 10),
+            font=("Yu Gothic", 10),
             borderwidth=0,
             relief="flat",
             highlightthickness=0
@@ -271,7 +271,7 @@ class MainWindow:
             command=self._add_files,
             bg=COLORS["accent"],
             fg=COLORS["text_light"],
-            font=("Segoe UI", 10),
+            font=("Yu Gothic", 10),
             relief="flat",
             borderwidth=0,
             padx=8,
@@ -290,7 +290,7 @@ class MainWindow:
             command=self._remove_files,
             bg=COLORS["bg_secondary"],
             fg=COLORS["text_primary"],
-            font=("Segoe UI", 10),
+            font=("Yu Gothic", 10),
             relief="flat",
             borderwidth=0,
             padx=8,
@@ -309,7 +309,7 @@ class MainWindow:
             command=self._clear_files,
             bg=COLORS["bg_secondary"],
             fg=COLORS["text_primary"],
-            font=("Segoe UI", 10),
+            font=("Yu Gothic", 10),
             relief="flat",
             borderwidth=0,
             padx=8,
@@ -333,7 +333,7 @@ class MainWindow:
             command=self._start_transcription,
             bg=COLORS["bg_primary"],
             fg=COLORS["success"],
-            font=("Segoe UI", 11, "bold"),
+            font=("Yu Gothic", 11, "bold"),
             relief="flat",
             borderwidth=0,
             padx=12,
@@ -353,7 +353,7 @@ class MainWindow:
             command=self._cancel_transcription,
             bg=COLORS["bg_primary"],
             fg=COLORS["error"],
-            font=("Segoe UI", 11, "bold"),
+            font=("Yu Gothic", 11, "bold"),
             relief="flat",
             borderwidth=0,
             padx=10,
