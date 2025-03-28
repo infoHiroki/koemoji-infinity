@@ -72,6 +72,10 @@ class MainWindow:
         # 画像を読み込む
         self._load_images()
         
+        # ファビコンを設定
+        if self.images.get("logo"):
+            self.root.iconphoto(True, self.images["logo"])
+        
         # スタイルの設定
         self._setup_styles()
         
