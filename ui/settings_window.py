@@ -99,11 +99,21 @@ class SettingsWindow:
         
         # タブのスタイル設定
         style.configure("TNotebook", background=COLORS["bg_primary"], borderwidth=0)
-        style.configure("TNotebook.Tab", background=COLORS["bg_secondary"], foreground=COLORS["text_primary"], 
-                        font=normal_font, padding=[12, 6], borderwidth=0)
+        
+        # タブのスタイル修正 - 非選択時は薄いグレー背景に黒文字、選択時は青背景に白文字
+        style.configure("TNotebook.Tab", 
+                        background=COLORS["border"],  # 非選択時は薄いグレー背景
+                        foreground=COLORS["text_primary"], 
+                        font=normal_font, 
+                        padding=[12, 6], 
+                        borderwidth=0)
+        
+        # タブマッピング - 選択時と非選択時の色を明確に区別
         style.map("TNotebook.Tab", 
-                  background=[("selected", COLORS["accent"])],
-                  foreground=[("selected", COLORS["text_light"])],
+                  background=[("selected", COLORS["accent"]), 
+                              ("active", COLORS["border"])],  # アクティブ時は薄いグレー
+                  foreground=[("selected", COLORS["text_light"]), 
+                              ("active", COLORS["text_primary"])],  # 選択時は白文字
                   expand=[("selected", [1, 1, 1, 0])])
 
     def _create_main_layout(self):
