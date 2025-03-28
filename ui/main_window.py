@@ -335,7 +335,8 @@ class MainWindow:
             padx=12,
             pady=6,
             activebackground=COLORS["success_hover"],
-            activeforeground=COLORS["text_light"]
+            activeforeground=COLORS["text_light"],
+            highlightthickness=0
         )
         self.start_button.pack(side=tk.RIGHT, padx=5)
         
@@ -355,7 +356,8 @@ class MainWindow:
             pady=6,
             activebackground=COLORS["error_hover"],
             activeforeground=COLORS["text_light"],
-            state=tk.DISABLED
+            state=tk.DISABLED,
+            highlightthickness=0
         )
         self.cancel_button.pack(side=tk.RIGHT, padx=5)
     
