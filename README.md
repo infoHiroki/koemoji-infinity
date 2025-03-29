@@ -8,15 +8,11 @@ OpenAI Whisperモデルを使用して、音声ファイルや動画ファイル
 コエモジ∞
 │
 ├── main.py                     # アプリケーションのエントリーポイント
-│
 ├── transcriber.py              # 文字起こし処理を行うコアモジュール
 ├── transcriber.spec            # PyInstallerのビルド仕様ファイル
-│
 ├── requirements.txt            # 必要なPythonパッケージリスト
-│
 ├── run_app.bat                 # Windows用の起動バッチファイル
 ├── run_hidden.vbs              # バックグラウンド実行用スクリプト
-│
 ├── create_icon.py              # アイコン生成ユーティリティ
 ├── create_shortcut.py          # ショートカット作成ユーティリティ
 │
@@ -111,8 +107,8 @@ OpenAI Whisperモデルを使用して、音声ファイルや動画ファイル
 
 1. リポジトリをクローン：
    ```
-   git clone https://github.com/yourusername/audio-video-transcriber.git
-   cd audio-video-transcriber
+   git clone https://github.com/yourusername/koemoji-infinity.git
+   cd koemoji-infinity
    ```
 
 2. 依存パッケージのインストール：
@@ -137,25 +133,78 @@ python main.py
 3. 「文字起こし開始」ボタンをクリックして処理を開始
 4. 処理完了後、結果を確認して保存
 
-## プロジェクト構成
+## 設定ガイド
 
+アプリケーションの設定は `utils/config_manager.py` によって管理されています。
+設定は内部的に保存され、次回起動時に自動的に読み込まれます。
+
+### 主な設定項目
+
+- **モデルサイズ**: Whisperモデルのサイズ（tiny, base, small, medium, large）
+  - tiny: 小さく高速だが精度は低め
+  - base: バランスの取れたサイズ
+  - small: 一般的な用途に適したサイズ
+  - medium: 高精度だがやや処理が遅い
+  - large: 最高精度だが処理速度は最も遅い
+
+- **言語設定**: 文字起こしを行う言語
+  - 自動検出: AIが言語を自動判定
+  - 日本語、英語など: 特定言語に特化して精度向上
+
+- **出力設定**: 文字起こし結果の出力方法
+  - 出力ディレクトリ
+  - タイムスタンプの有無
+
+## 開発者向け情報
+
+### 開発環境のセットアップ
+
+1. 仮想環境の作成（推奨）:
+   ```
+   python -m venv venv
+   # Windowsの場合
+   venv\Scripts\activate
+   # macOS/Linuxの場合
+   source venv/bin/activate
+   ```
+
+2. 開発用依存関係のインストール:
+   ```
+   pip install -r requirements.txt
+   ```
+
+### ビルド方法
+
+PyInstallerを使用して実行可能ファイルを生成:
 ```
-.
-├── main.py           # アプリケーションのエントリーポイント
-├── transcriber.py    # 文字起こし処理のメインロジック
-├── config.json       # アプリケーション設定ファイル
-├── requirements.txt  # 依存パッケージリスト
-├── ui/               # ユーザーインターフェース関連ファイル
-│   ├── main_window.py     # メインウィンドウの実装
-│   ├── settings_window.py # 設定ウィンドウの実装
-│   └── result_window.py   # 結果表示ウィンドウの実装
-├── utils/            # ユーティリティ関数と補助クラス
-│   └── config_manager.py  # 設定管理クラス
-└── resources/        # リソースファイル（ロゴ、アイコンなど）
-    ├── koemoji-infinity-logo.png      # ロゴ画像
-    ├── koemoji-infinity-icon.png      # アイコン画像
-    └── その他のUIアイコン
+pyinstaller transcriber.spec
 ```
+
+### コーディング規約
+
+- PEP 8 スタイルガイドに準拠
+- ドキュメンテーション文字列（docstring）を各関数・クラスに記述
+- コメントは日本語で記述
+
+## トラブルシューティング
+
+### 一般的な問題と解決策
+
+1. **FFmpegが見つからない場合**
+   - エラーメッセージ: `FFmpegが見つかりません。FFmpegをインストールして環境変数に追加してください。`
+   - 解決策: FFmpegをインストールし、PATHに追加してください。
+
+2. **モデルのダウンロードに失敗する場合**
+   - エラーメッセージ: `モデルのロードに失敗しました`
+   - 解決策: インターネット接続を確認し、一時的な問題であれば再試行してください。
+
+3. **メモリ不足エラー**
+   - エラーメッセージ: `CUDA out of memory`や`Memory Error`
+   - 解決策: より小さいモデルサイズを選択するか、GPU搭載PCで実行してください。
+
+4. **処理が遅い場合**
+   - 原因: CPUでの処理や大きなモデルサイズの使用
+   - 解決策: GPU搭載のマシンを使用するか、より小さいモデルサイズを選択してください。
 
 ## ライセンス
 
