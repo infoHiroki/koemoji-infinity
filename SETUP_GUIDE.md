@@ -1,6 +1,7 @@
-# コエモジ∞ セットアップガイド
+# コエモジ∞ セットアップガイド（Windows環境用）
 
-このガイドでは、新しいPCに「コエモジ∞」アプリケーションをセットアップする手順を説明します。
+このガイドでは、Windows PCに「コエモジ∞」アプリケーションをセットアップする手順を説明します。
+※本アプリケーションはWindows環境でのみ動作確認を行っています。
 
 ## 目次
 
@@ -12,37 +13,41 @@
 ## システム要件
 
 ### 最小要件
-- **OS**: Windows 10/11、macOS 10.15以上、Ubuntu 20.04以上
+- **OS**: Windows 10以上
 - **CPU**: Intel Core i5、AMD Ryzen 5、または同等以上
 - **メモリ**: 8GB RAM以上
 - **ストレージ**: 2GB以上の空き容量
 - **インターネット接続**: 初回起動時にWhisperモデルをダウンロードするために必要
 
 ### 推奨環境
-- **OS**: Windows 11、macOS 12以上、Ubuntu 22.04
+- **OS**: Windows 11
 - **CPU**: Intel Core i7/i9、AMD Ryzen 7/9、または同等以上
 - **メモリ**: 16GB RAM以上
-- **GPU**: NVIDIA GeForce RTX、AMD Radeon RX（CUDA/ROCmサポート）
+- **GPU**: NVIDIA GeForce RTX（CUDA対応）
 - **ストレージ**: SSD 5GB以上の空き容量
 - **インターネット接続**: 高速接続
 
 ## インストール手順
 
-### 1. 実行ファイルのダウンロード
+### 1. Pythonのインストール
 
-最新バージョンのコエモジ∞を以下のいずれかの方法でダウンロードします：
+1. [Python公式サイト](https://www.python.org/downloads/windows/)から最新のPython 3.8以降をダウンロード
+2. インストーラーを実行し、「Add Python to PATH」オプションを必ずチェック
+3. 「Install Now」をクリックしてインストール
 
-- [リリースページ](https://github.com/yourusername/koemoji-infinity/releases)から最新版のインストーラーをダウンロード
-- 以下のリンクから直接ダウンロード：
-  - [Windows版](https://github.com/yourusername/koemoji-infinity/releases/latest/download/koemoji-infinity-setup-win.exe)
-  - [macOS版](https://github.com/yourusername/koemoji-infinity/releases/latest/download/koemoji-infinity-macos.dmg)
-  - [Linux版](https://github.com/yourusername/koemoji-infinity/releases/latest/download/koemoji-infinity-linux.AppImage)
+### 2. コエモジ∞のダウンロード
 
-### 2. FFmpegのインストール
+1. [リリースページ](https://github.com/yourusername/koemoji-infinity/releases)から最新版をダウンロード
+   - ZIPファイルをダウンロードして適当なフォルダに解凍
+   - または、以下のコマンドでリポジトリをクローン:
+   ```
+   git clone https://github.com/yourusername/koemoji-infinity.git
+   ```
+
+### 3. FFmpegのインストール
 
 コエモジ∞は音声・動画処理にFFmpegを使用します。以下の手順でインストールしてください：
 
-#### Windows
 1. [FFmpegのダウンロードページ](https://ffmpeg.org/download.html)から「Windows Builds」をクリック
 2. 「essentials build」をダウンロード
 3. ダウンロードしたZIPファイルを解凍
@@ -52,45 +57,36 @@
    - 「新規」をクリックして、FFmpegのbinフォルダのパスを追加（例：`C:\ffmpeg\bin`）
    - 「OK」をクリックして閉じる
 
-#### macOS
-1. [Homebrew](https://brew.sh/)がインストールされていることを確認
-2. ターミナルを開いて以下のコマンドを実行：
-   ```
-   brew install ffmpeg
-   ```
+### 4. 依存パッケージのインストール
 
-#### Linux (Ubuntu/Debian)
-1. ターミナルを開いて以下のコマンドを実行：
-   ```
-   sudo apt update
-   sudo apt install ffmpeg
-   ```
+コマンドプロンプトまたはPowerShellを開き、コエモジ∞のフォルダに移動して以下のコマンドを実行：
 
-### 3. アプリケーションのインストール
+```
+pip install -r requirements.txt
+```
 
-#### Windows
-1. ダウンロードしたインストーラー（`.exe`ファイル）をダブルクリック
-2. 画面の指示に従ってインストールを完了
-3. デスクトップに作成されたショートカットから起動できます
+### 5. ショートカットの作成（オプション）
 
-#### macOS
-1. ダウンロードした`.dmg`ファイルをダブルクリック
-2. アプリケーションをApplicationsフォルダにドラッグ＆ドロップ
-3. LaunchpadまたはApplicationsフォルダから起動できます
+デスクトップショートカットを作成するには、以下の手順で実行：
 
-#### Linux
-1. ダウンロードした`.AppImage`ファイルに実行権限を付与：
+1. コエモジ∞のフォルダに移動
+2. `create_shortcut.py`をダブルクリックまたはコマンドプロンプトで実行：
    ```
-   chmod +x koemoji-infinity-linux.AppImage
+   python create_shortcut.py
    ```
-2. ファイルをダブルクリックまたは以下のコマンドで実行：
-   ```
-   ./koemoji-infinity-linux.AppImage
-   ```
+3. デスクトップに「音声文字起こしアプリ」のショートカットが作成されます
 
 ## 初回起動と設定
 
-### 1. 初回起動
+### 1. アプリケーションの起動方法
+
+以下のいずれかの方法でアプリケーションを起動できます：
+
+- 作成したデスクトップショートカットをダブルクリック
+- コエモジ∞のフォルダで `run_app.bat` をダブルクリック
+- コマンドプロンプトでコエモジ∞のフォルダに移動し、`python main.py` を実行
+
+### 2. 初回起動時の処理
 
 初回起動時、以下の処理が自動的に行われます：
 
@@ -100,7 +96,7 @@
 
 > **注意**: 初回起動時はWhisperモデルのダウンロードに時間がかかることがあります（特に「large」モデルの場合）。
 
-### 2. 基本設定
+### 3. 基本設定
 
 1. アプリケーション起動後、右上の「⚙」アイコンをクリックして設定画面を開きます
 2. 必要に応じて以下の設定を変更します：
@@ -120,7 +116,7 @@
 - **出力先**: 文字起こし結果を保存するフォルダを選択
 - **タイムスタンプ**: 音声の区切りごとにタイムコードを表示するかどうか
 
-### 3. 文字起こしの実行
+### 4. 文字起こしの実行
 
 1. 「ファイル追加」ボタンをクリックして音声・動画ファイルを選択
 2. 複数ファイルを一度に追加することも可能
@@ -159,14 +155,20 @@
   2. GPU搭載のPCを使用（可能な場合）
   3. 短い音声ファイルから試す
 
+#### Python関連のエラー
+- **エラーメッセージ**: `'python' は、内部コマンドまたは外部コマンド...として認識されていません`
+- **解決策**:
+  1. Pythonが正しくインストールされているか確認
+  2. システムの環境変数「Path」にPythonのインストールパスが追加されているか確認
+  3. PCの再起動を試行
+
 ### サポートの利用
 
 さらに支援が必要な場合は、以下の方法でサポートを受けられます：
 
 - [GitHub Issues](https://github.com/yourusername/koemoji-infinity/issues)で問題を報告
-- [コミュニティフォーラム](https://example.com/forum)で質問
 - メールでのサポート: support@example.com
 
 ---
 
-このセットアップガイドについてご質問や改善提案がございましたら、お気軽にお知らせください。 
+**注意**: 本アプリケーションは現在Windows環境でのみ動作確認を行っています。macOSやLinux環境での動作は保証されていません。 
