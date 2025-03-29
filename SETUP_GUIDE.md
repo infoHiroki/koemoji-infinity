@@ -129,13 +129,13 @@ python main.py
 {
   "model": "small",
   "language": "ja",
-  "output_directory": "C:/Users/Username/Desktop/文字起こしデータ"
+  "output_directory": "C:/Users/Username/Desktop/コエモジ∞"
 }
 ```
 
 - **model**: Whisperモデルのサイズ（"tiny", "base", "small", "medium", "large"）
 - **language**: 文字起こし言語（""は自動検出、"ja"は日本語）
-- **output_directory**: 文字起こし結果の保存先
+- **output_directory**: 文字起こし結果の保存先（ファイル名の頭に'KOEMOJI-'が追加されます）
 
 ## 配布準備
 
