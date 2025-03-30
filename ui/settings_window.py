@@ -259,7 +259,7 @@ class SettingsWindow:
         # 出力説明
         output_desc = ttk.Label(
             content,
-            text="文字起こし結果のテキストファイルが保存されるフォルダを指定します。指定しない場合はデスクトップの「文字起こしデータ」フォルダに保存されます。",
+            text="文字起こし結果のテキストファイルが保存されるフォルダを指定します。指定しない場合はデスクトップの「コエモジ∞_文字起こし結果」フォルダに保存されます。",
             wraplength=450,
             justify=tk.LEFT,
             style="Description.TLabel"
@@ -414,7 +414,7 @@ class SettingsWindow:
         
         # 出力ディレクトリが指定されていない場合はデフォルト値を設定
         if not output_dir:
-            output_dir = os.path.join(os.path.expanduser("~/Desktop"), "文字起こしデータ")
+            output_dir = os.path.join(os.path.expanduser("~/Desktop"), "コエモジ∞_文字起こし結果")
         
         # 設定を更新
         config = {
