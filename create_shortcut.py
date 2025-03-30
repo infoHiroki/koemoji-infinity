@@ -16,17 +16,45 @@ def create_ico_from_png(png_path, ico_path):
         from PIL import Image
         img = Image.open(png_path)
         
+        # 背景が透明でない場合は透明な背景を作成
+        if img.mode != 'RGBA':
+            img = img.convert('RGBA')
+            
         # 複数サイズのアイコンを作成（Windows推奨サイズ）
-        sizes = [(16, 16), (32, 32), (48, 48), (64, 64)]
+        sizes = [(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]
         icon_images = []
         
         for size in sizes:
-            resized_img = img.resize(size, Image.LANCZOS)
-            icon_images.append(resized_img)
+            # 元画像のアスペクト比を維持するための計算
+            original_width, original_height = img.size
+            aspect_ratio = original_width / original_height
+            
+            # 新しいサイズでの幅と高さ（正方形に収める）
+            if aspect_ratio > 1:
+                # 幅が大きい場合
+                new_width = size[0]
+                new_height = int(new_width / aspect_ratio)
+            else:
+                # 高さが大きい場合
+                new_height = size[1]
+                new_width = int(new_height * aspect_ratio)
+            
+            # 透明な正方形画像を作成
+            square_img = Image.new('RGBA', size, (0, 0, 0, 0))
+            
+            # リサイズした画像
+            resized_img = img.resize((new_width, new_height), Image.LANCZOS)
+            
+            # 中央に配置
+            paste_x = (size[0] - new_width) // 2
+            paste_y = (size[1] - new_height) // 2
+            square_img.paste(resized_img, (paste_x, paste_y), resized_img)
+            
+            icon_images.append(square_img)
         
         # 複数サイズを含むICOとして保存
-        icon_images[0].save(ico_path, format='ICO', sizes=[(img.width, img.height) for img in icon_images])
-        print(f"ICOファイルを作成しました: {ico_path}")
+        icon_images[0].save(ico_path, format='ICO', sizes=[(img.width, img.height) for img in icon_images], quality=100)
+        print(f"高品質ICOファイルを作成しました: {ico_path}")
         return True
     except Exception as e:
         print(f"ICOファイル作成エラー: {e}")
