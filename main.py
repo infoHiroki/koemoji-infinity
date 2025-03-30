@@ -65,48 +65,58 @@ def create_app_icon():
             return None
             
         # PNGからICOを作成
-        from PIL import Image
+        from PIL import Image, ImageEnhance
         img = Image.open(logo_path)
         
         # 背景が透明でない場合は透明な背景を作成
         if img.mode != 'RGBA':
             img = img.convert('RGBA')
+            
+        # コントラストとシャープネスを少し上げて鮮明にする
+        enhancer = ImageEnhance.Contrast(img)
+        img = enhancer.enhance(1.2)  # コントラストを20%上げる
+        
+        enhancer = ImageEnhance.Sharpness(img)
+        img = enhancer.enhance(1.5)  # シャープネスを50%上げる
         
         # 複数サイズのアイコンを作成（Windows推奨サイズ）
         sizes = [(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)]
         icon_images = []
         
         for size in sizes:
-            # 元画像のアスペクト比を維持するための計算
-            original_width, original_height = img.size
-            aspect_ratio = original_width / original_height
-            
-            # 新しいサイズでの幅と高さ（正方形に収める）
-            if aspect_ratio > 1:
-                # 幅が大きい場合
-                new_width = size[0]
-                new_height = int(new_width / aspect_ratio)
-            else:
-                # 高さが大きい場合
-                new_height = size[1]
-                new_width = int(new_height * aspect_ratio)
-            
-            # 透明な正方形画像を作成
+            # アイコン用の新しい正方形画像を作成 (透明背景)
             square_img = Image.new('RGBA', size, (0, 0, 0, 0))
             
-            # リサイズした画像
-            resized_img = img.resize((new_width, new_height), Image.LANCZOS)
+            # 小さいサイズほどアンチエイリアスを調整
+            if size[0] <= 32:
+                # 元画像を一度大きめにリサイズしてからシャープネスを上げる (小さいアイコン向け)
+                temp_size = (size[0] * 3, size[1] * 3)
+                temp_img = img.resize(temp_size, Image.LANCZOS)
+                
+                # シャープネスを上げる
+                enhancer = ImageEnhance.Sharpness(temp_img)
+                temp_img = enhancer.enhance(2.0)  # 小さいアイコンは特にシャープに
+                
+                # 最終サイズにリサイズ
+                resized_img = temp_img.resize(size, Image.LANCZOS)
+            else:
+                # 大きめのアイコンは直接リサイズ
+                resized_img = img.resize(size, Image.LANCZOS)
             
             # 中央に配置
-            paste_x = (size[0] - new_width) // 2
-            paste_y = (size[1] - new_height) // 2
+            paste_x = (size[0] - resized_img.width) // 2
+            paste_y = (size[1] - resized_img.height) // 2
             square_img.paste(resized_img, (paste_x, paste_y), resized_img)
+            
+            # 透明度をさらに確実にする
+            r, g, b, a = square_img.split()
+            square_img = Image.merge("RGBA", (r, g, b, a))
             
             icon_images.append(square_img)
         
         # 複数サイズを含むICOとして保存
-        icon_images[0].save(icon_path, format='ICO', sizes=[(img.width, img.height) for img in icon_images], quality=100)
-        print(f"高品質アプリケーションアイコンを作成しました: {icon_path}")
+        icon_images[0].save(icon_path, format='ICO', sizes=[(img.size[0], img.size[1]) for img in icon_images], quality=100)
+        print(f"超高品質アプリケーションアイコンを作成しました: {icon_path}")
         
         return icon_path
     except Exception as e:
