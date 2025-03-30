@@ -75,6 +75,10 @@ def main():
                 icon_img = Image.open(logo_path)
                 icon_photo = ImageTk.PhotoImage(icon_img)
                 root.iconphoto(True, icon_photo)
+                # Windowsタイトルバー用のアイコンも設定
+                import ctypes
+                app_id = 'com.koemoji.infinity'  # アプリケーション識別子
+                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
                 # サブウィンドウでアイコンを再利用するためにプロパティとして保存
                 root.iconphoto_master = icon_photo
                 print(f"アイコンが正常に設定されました: {logo_path}")
@@ -90,6 +94,10 @@ def main():
                         icon_img = icon_img.resize((48, 48), Image.LANCZOS)
                         icon_photo = ImageTk.PhotoImage(icon_img)
                         root.iconphoto(True, icon_photo)
+                        # Windowsタイトルバー用のアイコンも設定
+                        import ctypes
+                        app_id = 'com.koemoji.infinity'  # アプリケーション識別子
+                        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
                         root.iconphoto_master = icon_photo
                         print(f"代替アイコンを設定しました: {alt_logo_path}")
                 except Exception as e2:

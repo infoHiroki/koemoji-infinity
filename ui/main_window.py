@@ -75,6 +75,13 @@ class MainWindow:
         # ファビコンを設定（ロゴ画像をアイコンとして使用）
         if self.images.get("logo"):
             self.root.iconphoto(True, self.images["logo"])
+            # Windowsタイトルバー用のアイコンも設定
+            try:
+                import ctypes
+                app_id = 'com.koemoji.infinity'  # アプリケーション識別子
+                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
+            except Exception as e:
+                print(f"Windowsタイトルバーアイコン設定エラー: {e}")
             # サブウィンドウでアイコンを再利用するためにプロパティとして保存
             self.root.iconphoto_master = self.images["logo"]
         
