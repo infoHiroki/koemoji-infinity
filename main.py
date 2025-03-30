@@ -14,6 +14,8 @@ from PIL import Image, ImageTk
 import threading
 import json
 import datetime
+import tempfile
+import ctypes
 
 # 自作モジュールのインポート
 from transcriber import VideoTranscriber
@@ -36,8 +38,107 @@ COLORS = {
     "border": "#E0E0E0",            # 標準ボーダー色（薄いグレー）
 }
 
+def create_app_icon():
+    """アプリケーションアイコンを作成"""
+    try:
+        # アイコンファイルの保存先
+        icon_path = os.path.join("resources", "app_icon.ico")
+        
+        # アイコンがすでに存在する場合は新たに作成しない
+        if os.path.exists(icon_path):
+            return icon_path
+            
+        # ロゴ画像の候補
+        logo_paths = [
+            os.path.join("resources", "koemoji-infinity-logo-48x48 px.png"),
+            os.path.join("resources", "koemoji-infinity-logo.png"),
+            os.path.join("resources", "koemoji-infinity-logo-touka.png")
+        ]
+        
+        # 使用可能なロゴを探す
+        logo_path = None
+        for path in logo_paths:
+            if os.path.exists(path):
+                logo_path = path
+                break
+        
+        if not logo_path:
+            print("ロゴ画像が見つかりませんでした")
+            return None
+            
+        # PNGからICOを作成
+        from PIL import Image
+        img = Image.open(logo_path)
+        
+        # 複数サイズのアイコンを作成（Windows推奨サイズ）
+        sizes = [(16, 16), (32, 32), (48, 48), (64, 64)]
+        icon_images = []
+        
+        for size in sizes:
+            resized_img = img.resize(size, Image.LANCZOS)
+            icon_images.append(resized_img)
+        
+        # 複数サイズを含むICOとして保存
+        icon_images[0].save(icon_path, format='ICO', sizes=[(img.width, img.height) for img in icon_images])
+        print(f"アプリケーションアイコンを作成しました: {icon_path}")
+        
+        return icon_path
+    except Exception as e:
+        print(f"アイコン作成エラー: {e}")
+        return None
+
+def set_taskbar_icon():
+    """Windows10/11のタスクバーアイコンを設定"""
+    try:
+        # アプリケーションIDを設定（これがタスクバーアイコン関連付けの鍵）
+        app_id = 'com.koemoji.infinity'
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
+        
+        # アイコンファイルも設定
+        icon_path = create_app_icon()
+        if icon_path and os.path.exists(icon_path):
+            # WinAPIを使用してアイコンを設定
+            try:
+                import win32gui
+                import win32con
+                import win32api
+                
+                # アイコンをロード
+                icon_flags = win32con.LR_LOADFROMFILE | win32con.LR_DEFAULTSIZE
+                h_icon = win32gui.LoadImage(
+                    None, 
+                    icon_path, 
+                    win32con.IMAGE_ICON,
+                    0, 0,
+                    icon_flags
+                )
+                
+                # アプリケーションアイコンを設定
+                win32gui.SendMessage(
+                    win32gui.GetForegroundWindow(), 
+                    win32con.WM_SETICON, 
+                    win32con.ICON_SMALL, 
+                    h_icon
+                )
+                win32gui.SendMessage(
+                    win32gui.GetForegroundWindow(),
+                    win32con.WM_SETICON,
+                    win32con.ICON_BIG,
+                    h_icon
+                )
+                
+                print("Windows APIを使用してアイコンを設定しました")
+            except Exception as e:
+                print(f"Windows APIでのアイコン設定エラー: {e}")
+        
+    except Exception as e:
+        print(f"タスクバーアイコン設定エラー: {e}")
+
 def main():
     """アプリケーションのメインエントリーポイント"""
+    # 事前にアイコンを作成
+    icon_path = create_app_icon()
+    
     # 設定の読み込み
     config_manager = ConfigManager()
     
@@ -66,24 +167,33 @@ def main():
     default_font = ("游ゴシック", 12)
     root.option_add("*Font", default_font)
     
-    # アプリケーションのアイコン設定（存在する場合）
+    # Windows固有のタスクバーアイコン設定
+    set_taskbar_icon()
+    
+    # アプリケーションのアイコン設定（複数の方法を試みる）
     try:
-        # ロゴ画像をアイコンとして使用（ファビコンをロゴに統一）
+        # 方法1: 生成済みのICOファイルを直接使用
+        if icon_path and os.path.exists(icon_path):
+            # iconbitmapメソッドを試す
+            try:
+                root.iconbitmap(icon_path)
+                print(f"iconbitmapでアイコンを設定しました: {icon_path}")
+            except Exception as e:
+                print(f"iconbitmapエラー: {e}")
+        
+        # 方法2: Tkinterの標準的な方法
         logo_path = "resources/koemoji-infinity-logo-48x48 px.png"
         if os.path.exists(logo_path):
             try:
                 icon_img = Image.open(logo_path)
                 icon_photo = ImageTk.PhotoImage(icon_img)
                 root.iconphoto(True, icon_photo)
-                # Windowsタイトルバー用のアイコンも設定
-                import ctypes
-                app_id = 'com.koemoji.infinity'  # アプリケーション識別子
-                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
                 # サブウィンドウでアイコンを再利用するためにプロパティとして保存
                 root.iconphoto_master = icon_photo
-                print(f"アイコンが正常に設定されました: {logo_path}")
+                print(f"iconphotoでアイコンを設定しました: {logo_path}")
             except Exception as e:
-                print(f"ロゴ画像の読み込みに失敗しました（詳細）: {e}")
+                print(f"iconphotoエラー: {e}")
+                
                 # ファイル名にスペースがある場合の代替処理
                 try:
                     # 代替ロゴを使用
@@ -94,37 +204,10 @@ def main():
                         icon_img = icon_img.resize((48, 48), Image.LANCZOS)
                         icon_photo = ImageTk.PhotoImage(icon_img)
                         root.iconphoto(True, icon_photo)
-                        # Windowsタイトルバー用のアイコンも設定
-                        import ctypes
-                        app_id = 'com.koemoji.infinity'  # アプリケーション識別子
-                        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
                         root.iconphoto_master = icon_photo
                         print(f"代替アイコンを設定しました: {alt_logo_path}")
                 except Exception as e2:
                     print(f"代替ロゴの読み込みにも失敗しました: {e2}")
-        elif os.path.exists("resources/koemoji-infinity-logo.png"):
-            icon_img = Image.open("resources/koemoji-infinity-logo.png")
-            # 適切なサイズにリサイズ
-            icon_img = icon_img.resize((48, 48), Image.LANCZOS)
-            icon_photo = ImageTk.PhotoImage(icon_img)
-            root.iconphoto(True, icon_photo)
-            # サブウィンドウでアイコンを再利用するためにプロパティとして保存
-            root.iconphoto_master = icon_photo
-            print("通常ロゴ画像をアイコンとして使用します")
-        elif os.path.exists("resources/koemoji-infinity-logo-touka.png"):
-            icon_img = Image.open("resources/koemoji-infinity-logo-touka.png")
-            # 適切なサイズにリサイズ
-            icon_img = icon_img.resize((48, 48), Image.LANCZOS)
-            icon_photo = ImageTk.PhotoImage(icon_img)
-            root.iconphoto(True, icon_photo)
-            # サブウィンドウでアイコンを再利用するためにプロパティとして保存
-            root.iconphoto_master = icon_photo
-            print("透過ロゴ画像をアイコンとして使用します")
-        elif os.path.exists("resources/icon.ico"):
-            root.iconbitmap("resources/icon.ico")
-            print("アイコンファイルを使用します")
-        else:
-            print("アイコンファイルが見つかりませんでした")
     except Exception as e:
         print(f"アイコンの読み込みに失敗しました: {e}")
     

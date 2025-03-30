@@ -15,8 +15,18 @@ def create_ico_from_png(png_path, ico_path):
     try:
         from PIL import Image
         img = Image.open(png_path)
-        # アイコンとして保存
-        img.save(ico_path, format='ICO')
+        
+        # 複数サイズのアイコンを作成（Windows推奨サイズ）
+        sizes = [(16, 16), (32, 32), (48, 48), (64, 64)]
+        icon_images = []
+        
+        for size in sizes:
+            resized_img = img.resize(size, Image.LANCZOS)
+            icon_images.append(resized_img)
+        
+        # 複数サイズを含むICOとして保存
+        icon_images[0].save(ico_path, format='ICO', sizes=[(img.width, img.height) for img in icon_images])
+        print(f"ICOファイルを作成しました: {ico_path}")
         return True
     except Exception as e:
         print(f"ICOファイル作成エラー: {e}")
